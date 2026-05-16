@@ -1,0 +1,16 @@
+{
+  "name": "GesConge — Gestion des Congés",
+  "short_name": "GesConge",
+  "description": "Système de gestion des congés pour équipes de quart A/B/C/D",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#eff6ff",
+  "theme_color": "#2563eb",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "categories": ["business", "productivity"],
+  "lang": "fr"
+}

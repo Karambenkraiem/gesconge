@@ -1,0 +1,83 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-cairo: 'Cairo', system-ui, sans-serif;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+body {
+  font-family: var(--font-cairo), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Mobile safe area */
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+.safe-top { padding-top: env(safe-area-inset-top); }
+
+/* Smooth scrolling */
+html { scroll-behavior: smooth; }
+
+/* Calendar styles */
+.react-calendar {
+  width: 100% !important;
+  border: none !important;
+  font-family: var(--font-cairo), sans-serif !important;
+  background: white;
+  border-radius: 12px;
+  padding: 8px;
+}
+
+.react-calendar__tile {
+  border-radius: 8px !important;
+  font-size: 13px !important;
+  padding: 8px 4px !important;
+  position: relative;
+}
+
+.react-calendar__tile--active {
+  background: #2563eb !important;
+  color: white !important;
+}
+
+.react-calendar__tile--now {
+  background: #eff6ff !important;
+  font-weight: 700;
+}
+
+.react-calendar__navigation button {
+  font-family: var(--font-cairo), sans-serif !important;
+  font-size: 14px !important;
+  border-radius: 8px !important;
+}
+
+/* Status badges */
+.badge-en_attente { @apply bg-amber-100 text-amber-800 border border-amber-200; }
+.badge-approuve { @apply bg-green-100 text-green-800 border border-green-200; }
+.badge-refuse { @apply bg-red-100 text-red-800 border border-red-200; }
+.badge-annule { @apply bg-gray-100 text-gray-600 border border-gray-200; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+/* Animations */
+@keyframes slideUp {
+  from { transform: translateY(16px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.slide-up { animation: slideUp 0.25s ease-out; }
+
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.4); }
+}
+
+.pulse-dot { animation: pulse-dot 1.5s ease-in-out infinite; }

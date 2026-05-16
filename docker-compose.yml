@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: conge_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: conge_user
+      POSTGRES_PASSWORD: CongeSecure@2024
+      POSTGRES_DB: conge_db
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U conge_user -d conge_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: conge_backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: conge_user
+      DB_PASSWORD: CongeSecure@2024
+      DB_NAME: conge_db
+      JWT_SECRET: ${JWT_SECRET:-gesconge-super-secret-jwt-key-2024-change-me}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3004}
+      PORT: 3001
+    ports:
+      - "3005:3001"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3005}
+    container_name: conge_frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3005}
+    ports:
+      - "3004:3000"
+
+volumes:
+  postgres_data:
