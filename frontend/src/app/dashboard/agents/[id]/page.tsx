@@ -265,8 +265,9 @@ export default function AgentDetailPage() {
         <div className="fixed inset-0 z-50">
           <style>{`
             @media print {
-              body > * { display: none !important; }
-              #steg-print-root { display: block !important; position: fixed; inset: 0; background: white; z-index: 9999; }
+              body * { visibility: hidden !important; }
+              #steg-print-root, #steg-print-root * { visibility: visible !important; }
+              #steg-print-root { position: fixed; top: 0; left: 0; width: 100%; background: white; }
             }
           `}</style>
 
