@@ -2,12 +2,13 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../contexts/AuthContext';
+import { usersAPI } from '../../../lib/api';
+import { User, ROLE_LABELS } from '../../../types';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const JOURS = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
 const MOIS  = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
 
-// Cycle 8 jours, 2 jours par état — référence ancrée sur mai 2026 (vérifié sur image)
 const STATES = [
   { Q1:'B', Q2:'D', Q3:'C', R:'A' },
   { Q1:'D', Q2:'A', Q3:'B', R:'C' },
@@ -18,15 +19,14 @@ const REF = new Date('2026-04-30T00:00:00');
 
 function getState(date: Date) {
   const days = Math.round((date.getTime() - REF.getTime()) / 86400000);
-  const idx  = (((Math.floor(days / 2)) % 4) + 4) % 4;
-  return STATES[idx];
+  return STATES[(((Math.floor(days / 2)) % 4) + 4) % 4];
 }
 
-const TEAM: Record<string, { bg: string; text: string; border: string }> = {
-  A: { bg:'#ede9fe', text:'#6d28d9', border:'#c4b5fd' },
-  B: { bg:'#e0f2fe', text:'#0369a1', border:'#7dd3fc' },
-  C: { bg:'#d1fae5', text:'#065f46', border:'#6ee7b7' },
-  D: { bg:'#fef3c7', text:'#92400e', border:'#fcd34d' },
+const TEAM: Record<string, { bg: string; text: string; border: string; bgDark: string }> = {
+  A: { bg:'#ede9fe', text:'#6d28d9', border:'#c4b5fd', bgDark:'#7c3aed' },
+  B: { bg:'#e0f2fe', text:'#0369a1', border:'#7dd3fc', bgDark:'#0891b2' },
+  C: { bg:'#d1fae5', text:'#065f46', border:'#6ee7b7', bgDark:'#059669' },
+  D: { bg:'#fef3c7', text:'#92400e', border:'#fcd34d', bgDark:'#d97706' },
 };
 
 function Badge({ eq }: { eq: string }) {
@@ -46,12 +46,27 @@ export default function RoulementPage() {
 
   const [year,  setYear]  = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
+  const [members, setMembers] = useState<Record<string, User[]>>({ A:[], B:[], C:[], D:[] });
 
   const isManager = user?.role === 'super_admin' || user?.role === 'chef_exploitation';
 
   useEffect(() => {
     if (user && !isManager) router.replace('/dashboard');
   }, [user, isManager, router]);
+
+  useEffect(() => {
+    usersAPI.getAll().then(res => {
+      const grouped: Record<string, User[]> = { A:[], B:[], C:[], D:[] };
+      const ROLE_ORDER: Record<string, number> = {
+        chef_quart: 0, chef_bloc: 1, operateur: 2, autre: 3,
+      };
+      (res.data as User[])
+        .filter(u => u.actif && ['A','B','C','D'].includes(u.equipe))
+        .sort((a, b) => (ROLE_ORDER[a.role] ?? 9) - (ROLE_ORDER[b.role] ?? 9))
+        .forEach(u => grouped[u.equipe].push(u));
+      setMembers(grouped);
+    }).catch(() => {});
+  }, []);
 
   const days = useMemo(() => {
     const count = new Date(year, month + 1, 0).getDate();
@@ -69,21 +84,46 @@ export default function RoulementPage() {
   if (!isManager) return null;
 
   return (
-    <div className="max-w-lg mx-auto px-3 py-4">
-      <h1 className="text-xl font-black text-slate-800 mb-3">Roulement des Quarts</h1>
+    <div className="max-w-lg mx-auto px-3 py-4 space-y-4">
+      <h1 className="text-xl font-black text-slate-800">Roulement des Quarts</h1>
 
-      {/* Légende */}
-      <div className="flex gap-2 mb-4 flex-wrap">
-        {(['A','B','C','D'] as const).map(eq => (
-          <div key={eq} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg"
-            style={{ backgroundColor: TEAM[eq].bg, border: `1px solid ${TEAM[eq].border}` }}>
-            <span className="font-black text-xs" style={{ color: TEAM[eq].text }}>Équipe {eq}</span>
-          </div>
-        ))}
+      {/* ── Tableau des membres par équipe ── */}
+      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+        <div className="px-4 py-3 border-b border-slate-100 bg-slate-50">
+          <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Membres par équipe</p>
+        </div>
+        <div className="grid grid-cols-4 divide-x divide-slate-100">
+          {(['A','B','C','D'] as const).map(eq => (
+            <div key={eq} className="flex flex-col">
+              {/* En-tête équipe */}
+              <div className="py-2 text-center" style={{ backgroundColor: TEAM[eq].bg }}>
+                <span className="text-sm font-black" style={{ color: TEAM[eq].text }}>Éq. {eq}</span>
+                <p className="text-[10px] font-medium mt-0.5" style={{ color: TEAM[eq].text + 'cc' }}>
+                  {members[eq].length} agent{members[eq].length > 1 ? 's' : ''}
+                </p>
+              </div>
+              {/* Liste membres */}
+              <div className="divide-y divide-slate-50 flex-1">
+                {members[eq].length === 0 ? (
+                  <p className="text-[10px] text-slate-400 text-center py-3 px-1">—</p>
+                ) : members[eq].map(u => (
+                  <div key={u.id} className="px-2 py-2 border-b border-slate-50 last:border-0">
+                    <p className="text-[10px] font-bold text-slate-700 truncate leading-tight">
+                      {u.prenom} {u.nom}
+                    </p>
+                    <p className="text-[9px] text-slate-400 truncate mt-0.5">
+                      {ROLE_LABELS[u.role]}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* Sélecteur mois */}
-      <div className="flex items-center justify-between bg-white border border-slate-200 rounded-2xl px-4 py-3 mb-4">
+      {/* ── Sélecteur mois ── */}
+      <div className="flex items-center justify-between bg-white border border-slate-200 rounded-2xl px-4 py-3">
         <button onClick={goBack} className="p-1.5 rounded-lg hover:bg-slate-100">
           <ChevronLeft size={20} className="text-slate-600" />
         </button>
@@ -96,7 +136,7 @@ export default function RoulementPage() {
         </button>
       </div>
 
-      {/* Tableau */}
+      {/* ── Tableau roulement ── */}
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
         {/* En-tête */}
         <div className="grid grid-cols-6 bg-slate-50 border-b border-slate-200 text-center">
@@ -119,13 +159,12 @@ export default function RoulementPage() {
             const weekend = date.getDay() === 0 || date.getDay() === 6;
             return (
               <div key={d} className={`grid grid-cols-6 items-center ${today ? 'bg-blue-50' : weekend ? 'bg-slate-50/60' : ''}`}>
-                {/* Date */}
                 <div className="col-span-2 px-3 py-2 flex items-center gap-2">
                   <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-black ${
                     today ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600'
                   }`}>{d}</div>
                   <span className={`text-xs font-medium ${today ? 'text-blue-700 font-bold' : weekend ? 'text-slate-500' : 'text-slate-600'}`}>
-                    {jour.substring(0, 3)}.
+                    {jour.substring(0,3)}.
                   </span>
                   {today && <span className="text-[9px] bg-blue-600 text-white px-1 py-0.5 rounded font-bold ml-auto">Auj.</span>}
                 </div>
@@ -139,7 +178,7 @@ export default function RoulementPage() {
         </div>
       </div>
 
-      <p className="text-center text-xs text-slate-400 mt-3">Cycle 8 jours · 4 équipes A B C D</p>
+      <p className="text-center text-xs text-slate-400">Cycle 8 jours · 4 équipes A B C D</p>
     </div>
   );
 }
