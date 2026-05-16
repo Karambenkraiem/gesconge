@@ -54,6 +54,7 @@ export const usersAPI = {
 export const congesAPI = {
   getAll: () => api.get('/conges'),
   getMine: () => api.get('/conges/mes-conges'),
+  getCalendrier: () => api.get('/conges/calendrier'),
   getStats: () => api.get('/conges/stats'),
   create: (data: any) => api.post('/conges', data),
   decider: (id: string, statut: string, remarque?: string) =>

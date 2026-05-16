@@ -1,10 +1,11 @@
 import {
   Controller, Get, Post, Put, Body, Param, UseGuards, Request,
-  UseInterceptors, UploadedFile,
+  UseInterceptors, UploadedFile, Res,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { extname } from 'path';
+import { extname, join } from 'path';
+import { Response } from 'express';
 import { CongesService } from './conges.service';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { RolesGuard } from '../guards/roles.guard';
@@ -55,6 +56,11 @@ export class CongesController {
     return this.congesService.getStats();
   }
 
+  @Get('calendrier')
+  getCalendrier() {
+    return this.congesService.getCalendrier();
+  }
+
   @Post()
   create(@Request() req, @Body() dto: CreateCongeDto) {
     return this.congesService.create(req.user.userId, dto);
@@ -71,6 +77,12 @@ export class CongesController {
     return this.congesService.annuler(id, req.user.userId);
   }
 
+  @Get('file/:filename')
+  serveFile(@Param('filename') filename: string, @Res() res: Response) {
+    const filePath = join(process.cwd(), 'uploads', 'certificats', filename);
+    return (res as any).sendFile(filePath);
+  }
+
   @Post(':id/certificat')
   @UseInterceptors(FileInterceptor('file', { storage: certificatStorage }))
   uploadCertificat(
@@ -78,6 +90,6 @@ export class CongesController {
     @UploadedFile() file: any,
     @Request() req,
   ) {
-    return this.congesService.uploadCertificat(id, file.path, req.user.userId);
+    return this.congesService.uploadCertificat(id, file.filename, req.user.userId);
   }
 }

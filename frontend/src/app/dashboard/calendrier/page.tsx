@@ -28,7 +28,7 @@ export default function CalendrierPage() {
   const [selectedConges, setSelectedConges] = useState<Conge[]>([]);
 
   useEffect(() => {
-    congesAPI.getAll().then(r => setConges(r.data)).catch(() => {});
+    congesAPI.getCalendrier().then(r => setConges(r.data)).catch(() => {});
   }, []);
 
   const getCongesForDate = (date: Date) =>

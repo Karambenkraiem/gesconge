@@ -135,6 +135,15 @@ export class CongesService {
     return conge;
   }
 
+  async getCalendrier() {
+    return this.congeRepo
+      .createQueryBuilder('conge')
+      .leftJoinAndSelect('conge.demandeur', 'demandeur')
+      .where('conge.typeConge != :type', { type: TypeConge.SANS_SOLDE })
+      .orderBy('conge.dateDebut', 'ASC')
+      .getMany();
+  }
+
   async uploadCertificat(congeId: string, filePath: string, userId: string) {
     const conge = await this.congeRepo.findOne({ where: { id: congeId } });
     if (!conge) throw new NotFoundException('Congé non trouvé');

@@ -13,6 +13,7 @@ import {
   Printer, X, Paperclip, FileText, ExternalLink, AlertTriangle,
 } from 'lucide-react';
 import Link from 'next/link';
+import api from '../../../../lib/api';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -28,6 +29,7 @@ export default function CongeDetailPage() {
   const [showDecision, setShowDecision] = useState(false);
   const [decisionType, setDecisionType] = useState<'approuve' | 'refuse' | null>(null);
   const [showPrint, setShowPrint] = useState(false);
+  const [certBlobUrl, setCertBlobUrl] = useState<string | null>(null);
 
   const isManager = user?.role === 'super_admin' || user?.role === 'chef_exploitation';
 
@@ -93,10 +95,31 @@ export default function CongeDetailPage() {
 
   const isMine = conge.demandeur_id === user?.id;
   const agent = demandeurUser ?? conge.demandeur;
-  const certificatUrl = conge.certificat_medical
-    ? `${API_URL}/${conge.certificat_medical.replace(/\\/g, '/')}`
+  const certFilename = conge.certificat_medical
+    ? conge.certificat_medical.replace(/\\/g, '/').split('/').pop()
     : null;
-  const isPdf = certificatUrl?.toLowerCase().endsWith('.pdf');
+  const isPdf = certFilename?.toLowerCase().endsWith('.pdf');
+
+  const openCertificat = async () => {
+    if (!certFilename) return;
+    try {
+      const res = await api.get(`/conges/file/${certFilename}`, { responseType: 'blob' });
+      const blob = new Blob([res.data], { type: (res.headers['content-type'] as string) || 'application/octet-stream' });
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+    } catch { toast.error('Impossible d\'ouvrir le fichier'); }
+  };
+
+  const loadCertPreview = async () => {
+    if (!certFilename || isPdf || certBlobUrl) return;
+    try {
+      const res = await api.get(`/conges/file/${certFilename}`, { responseType: 'blob' });
+      const blob = new Blob([res.data], { type: 'image/jpeg' });
+      setCertBlobUrl(URL.createObjectURL(blob));
+    } catch {}
+  };
+
+  if (certFilename && !isPdf && !certBlobUrl) loadCertPreview();
 
   return (
     <div className="max-w-lg mx-auto">
@@ -169,26 +192,29 @@ export default function CongeDetailPage() {
             <p className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-3 flex items-center gap-1">
               <Paperclip size={12} /> Certificat médical
             </p>
-            {certificatUrl ? (
+            {certFilename ? (
               <div className="space-y-2">
                 {/* Aperçu image */}
-                {!isPdf && (
+                {!isPdf && certBlobUrl && (
                   <img
-                    src={certificatUrl}
+                    src={certBlobUrl}
                     alt="Certificat médical"
                     className="w-full rounded-xl border border-slate-200 max-h-64 object-contain bg-slate-50"
                   />
                 )}
-                <a
-                  href={certificatUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-3 py-2.5 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-700 font-medium hover:bg-blue-100 transition-colors"
+                {!isPdf && !certBlobUrl && (
+                  <div className="w-full rounded-xl border border-slate-200 h-24 bg-slate-50 flex items-center justify-center">
+                    <div className="w-5 h-5 border-2 border-slate-300 border-t-blue-500 rounded-full animate-spin" />
+                  </div>
+                )}
+                <button
+                  onClick={openCertificat}
+                  className="w-full flex items-center gap-2 px-3 py-2.5 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-700 font-medium hover:bg-blue-100 transition-colors"
                 >
                   <FileText size={16} />
                   {isPdf ? 'Ouvrir le certificat PDF' : 'Voir en plein écran'}
                   <ExternalLink size={12} className="ml-auto" />
-                </a>
+                </button>
               </div>
             ) : (
               <div className="flex items-center gap-2 px-3 py-2.5 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-700">
