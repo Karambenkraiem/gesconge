@@ -298,10 +298,10 @@ export default function AgentDetailPage() {
 
                   {/* En-tête */}
                   <div className="flex justify-between items-start mb-1">
-                    <div className="text-right text-[11px] text-slate-500">
-                      .......................... في ..........
-                    </div>
                     <div className="font-bold text-[14px]">الشركة التونسية للكهرباء والغاز</div>
+                    <div className="text-[11px] text-slate-600">
+                      {format(new Date(printConge.createdAt), 'dd / MM / yyyy')} في
+                    </div>
                   </div>
                   <div className="border-t border-dotted border-slate-400 mb-4" />
 
@@ -368,12 +368,10 @@ export default function AgentDetailPage() {
                   <div className="space-y-3 text-[12px]">
                     <div className="border-b border-dotted border-slate-400 pb-0.5">
                       <span className="font-bold">رصيد العون من العطلة السنوية في تاريخ تقديم المطلب :</span>{' '}
-                      {printConge.solde_au_depot !== undefined && printConge.solde_au_depot !== null
-                        ? `${printConge.solde_au_depot} يوم`
-                        : '...........'}
+                      ...........................................................
                     </div>
                     <div className="border-b border-dotted border-slate-400 pb-0.5">
-                      <span className="font-bold">بعنوان سنة :</span> {new Date(printConge.dateDebut).getFullYear()}
+                      <span className="font-bold">بعنوان سنة :</span> ...............
                     </div>
                   </div>
 
@@ -388,7 +386,14 @@ export default function AgentDetailPage() {
                   <div className="border-t border-slate-400 mb-4" />
 
                   <div className="text-[12px] font-bold mb-2">رأي وامضاء الرئيس المباشر</div>
-                  <div className="border-b border-dotted border-slate-400 mt-10 mb-4" />
+                  <div className="mt-3 mb-2 text-[13px] font-black text-green-700 tracking-widest">APPROUVÉE</div>
+                  {printConge.manager && (
+                    <div className="text-[11px] text-slate-600 mb-1">
+                      {printConge.manager.prenom} {printConge.manager.nom}
+                      {printConge.dateDecision && ` — ${format(new Date(printConge.dateDecision), 'dd/MM/yyyy')}`}
+                    </div>
+                  )}
+                  <div className="border-b border-dotted border-slate-400 mt-6 mb-4" />
 
                   <div className="text-left text-[10px] text-slate-500 mt-4">* الختم إجباري</div>
                 </div>
