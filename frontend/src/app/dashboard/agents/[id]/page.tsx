@@ -5,7 +5,7 @@ import { useAuth } from '../../../../contexts/AuthContext';
 import { usersAPI, congesAPI, notesAPI } from '../../../../lib/api';
 import { User, Conge, ROLE_LABELS, TYPE_LABELS, EQUIPE_COLORS } from '../../../../types';
 import StatutBadge from '../../../../components/StatutBadge';
-import { ArrowLeft, Phone, Hash, Shield, Users, Calendar, Save } from 'lucide-react';
+import { ArrowLeft, Phone, Hash, Shield, Users, Calendar, Save, Printer, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import toast from 'react-hot-toast';
@@ -44,6 +44,7 @@ export default function AgentDetailPage() {
   const [rendEdit, setRendEdit] = useState<Record<string, string>>({});
   const [prodEdit, setProdEdit] = useState<Record<number, string>>({});
   const [saving, setSaving] = useState(false);
+  const [printConge, setPrintConge] = useState<Conge | null>(null);
 
   const isManager = me?.role === 'super_admin' || me?.role === 'chef_exploitation';
 
@@ -237,19 +238,164 @@ export default function AgentDetailPage() {
           <div className="divide-y divide-slate-100">
             {conges.map(c => (
               <div key={c.id} className="px-4 py-3 flex items-center justify-between gap-2">
-                <div>
+                <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-slate-700">{TYPE_LABELS[c.typeConge]}</p>
                   <p className="text-xs text-slate-400 mt-0.5">
                     {format(new Date(c.dateDebut), 'dd MMM', { locale: fr })} → {format(new Date(c.dateFin), 'dd MMM yyyy', { locale: fr })}
                     {' · '}<span className="font-semibold text-slate-600">{c.nombreJours}j</span>
                   </p>
                 </div>
-                <StatutBadge statut={c.statut} />
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <StatutBadge statut={c.statut} />
+                  {c.statut === 'approuve' && c.typeConge === 'annuel' && (
+                    <button onClick={() => setPrintConge(c)}
+                      className="p-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors" title="Générer PDF">
+                      <Printer size={14} className="text-blue-600" />
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {/* ── Modal impression formulaire STEG ── */}
+      {printConge && agent && (
+        <div className="fixed inset-0 z-50">
+          <style>{`
+            @media print {
+              body > * { display: none !important; }
+              #steg-print-root { display: block !important; position: fixed; inset: 0; background: white; z-index: 9999; }
+            }
+          `}</style>
+
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black/60 print:hidden" onClick={() => setPrintConge(null)} />
+
+          {/* Fenêtre modale */}
+          <div className="relative h-full flex flex-col items-center justify-center p-4">
+            <div className="bg-white w-full max-w-2xl rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[95vh]">
+
+              {/* Barre d'actions */}
+              <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 print:hidden flex-shrink-0">
+                <p className="font-bold text-slate-700 text-sm">Aperçu — Formulaire de demande de congé</p>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => window.print()}
+                    className="flex items-center gap-1.5 bg-blue-600 text-white text-xs font-bold px-3 py-2 rounded-xl">
+                    <Printer size={14} /> Imprimer / PDF
+                  </button>
+                  <button onClick={() => setPrintConge(null)} className="p-1.5 rounded-lg hover:bg-slate-100">
+                    <X size={16} className="text-slate-500" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Formulaire */}
+              <div id="steg-print-root" className="overflow-auto flex-1">
+                <div dir="rtl" className="p-8 font-serif text-[13px] leading-relaxed min-h-[297mm] bg-white" style={{ fontFamily: 'Arial, sans-serif' }}>
+
+                  {/* En-tête */}
+                  <div className="flex justify-between items-start mb-1">
+                    <div className="text-right text-[11px] text-slate-500">
+                      .......................... في ..........
+                    </div>
+                    <div className="font-bold text-[14px]">الشركة التونسية للكهرباء والغاز</div>
+                  </div>
+                  <div className="border-t border-dotted border-slate-400 mb-4" />
+
+                  {/* Titre */}
+                  <div className="text-center mb-4">
+                    <h1 className="text-2xl font-black underline mb-1">طلب عطلـة</h1>
+                    <p className="text-[12px]">(إستراحة سنوية - إستثنائية)</p>
+                  </div>
+
+                  <div className="border-t border-slate-400 mb-3" />
+
+                  {/* Section agent */}
+                  <div className="flex justify-center mb-2">
+                    <div className="border border-slate-700 px-6 py-1 text-[13px] font-bold">خاص بالعـون</div>
+                  </div>
+                  <div className="border-t border-slate-400 mb-4" />
+
+                  <div className="space-y-3 text-[12px]">
+                    <div className="flex gap-8">
+                      <span className="flex-1 border-b border-dotted border-slate-400 pb-0.5">
+                        <span className="font-bold">الاسم واللقب :</span> {agent.prenom} {agent.nom}
+                      </span>
+                      <span className="flex-1 border-b border-dotted border-slate-400 pb-0.5">
+                        <span className="font-bold">الرقم الآلي :</span> {agent.matricule || '...........'}
+                      </span>
+                    </div>
+                    <div className="flex gap-8">
+                      <span className="flex-1 border-b border-dotted border-slate-400 pb-0.5">
+                        <span className="font-bold">الوحدة :</span> {agent.unite || '...........'}
+                      </span>
+                      <span className="flex-1 border-b border-dotted border-slate-400 pb-0.5">
+                        <span className="font-bold">الخطة :</span> {ROLE_LABELS[agent.role]}
+                      </span>
+                    </div>
+                    <div className="flex gap-8">
+                      <span className="flex-1 border-b border-dotted border-slate-400 pb-0.5">
+                        <span className="font-bold">نوع العطلة :</span> {TYPE_LABELS[printConge.typeConge]}
+                      </span>
+                      <span className="flex-1 border-b border-dotted border-slate-400 pb-0.5">
+                        <span className="font-bold">المـدة :</span> {printConge.nombreJours} يوم
+                      </span>
+                    </div>
+                    <div className="border-b border-dotted border-slate-400 pb-0.5">
+                      <span className="font-bold">سنة استحقاق العطلة :</span> {new Date(printConge.dateDebut).getFullYear()}
+                    </div>
+                    <div className="border-b border-dotted border-slate-400 pb-0.5">
+                      <span className="font-bold">تاريخ الدخول في العطلة :</span> {format(new Date(printConge.dateDebut), 'dd / MM / yyyy')}
+                    </div>
+                    <div className="border-b border-dotted border-slate-400 pb-0.5">
+                      <span className="font-bold">العنوان أثناء العطلة :</span> {printConge.adresse_conge || '...........................................................'}
+                    </div>
+                  </div>
+
+                  <div className="mt-6 text-right text-[12px] font-bold">إمضاء العون</div>
+                  <div className="border-b border-dotted border-slate-400 mt-6 mb-4" />
+
+                  {/* Section unité administrative */}
+                  <div className="border-t border-slate-400 mb-3" />
+                  <div className="flex justify-center mb-2">
+                    <div className="border border-slate-700 px-6 py-1 text-[13px] font-bold">خاص بالوحدة الإدارية</div>
+                  </div>
+                  <div className="border-t border-slate-400 mb-4" />
+
+                  <div className="space-y-3 text-[12px]">
+                    <div className="border-b border-dotted border-slate-400 pb-0.5">
+                      <span className="font-bold">رصيد العون من العطلة السنوية في تاريخ تقديم المطلب :</span>{' '}
+                      {printConge.solde_au_depot !== undefined && printConge.solde_au_depot !== null
+                        ? `${printConge.solde_au_depot} يوم`
+                        : '...........'}
+                    </div>
+                    <div className="border-b border-dotted border-slate-400 pb-0.5">
+                      <span className="font-bold">بعنوان سنة :</span> {new Date(printConge.dateDebut).getFullYear()}
+                    </div>
+                  </div>
+
+                  <div className="mt-6 text-right text-[12px] font-bold">ختم الوحدة الإدارية *</div>
+                  <div className="border-b border-dotted border-slate-400 mt-10 mb-4" />
+
+                  {/* Section unité responsable */}
+                  <div className="border-t border-slate-400 mb-3" />
+                  <div className="flex justify-center mb-2">
+                    <div className="border border-slate-700 px-6 py-1 text-[13px] font-bold">خاص بالوحدة المسؤولة</div>
+                  </div>
+                  <div className="border-t border-slate-400 mb-4" />
+
+                  <div className="text-[12px] font-bold mb-2">رأي وامضاء الرئيس المباشر</div>
+                  <div className="border-b border-dotted border-slate-400 mt-10 mb-4" />
+
+                  <div className="text-left text-[10px] text-slate-500 mt-4">* الختم إجباري</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

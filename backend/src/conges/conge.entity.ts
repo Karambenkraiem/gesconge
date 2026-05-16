@@ -49,6 +49,15 @@ export class Conge {
   motif: string;
 
   @Column({ type: 'text', nullable: true })
+  adresse_conge: string;
+
+  @Column({ nullable: true })
+  certificat_medical: string;
+
+  @Column({ type: 'decimal', precision: 5, scale: 1, nullable: true })
+  solde_au_depot: number;
+
+  @Column({ type: 'text', nullable: true })
   remarqueManager: string;
 
   @ManyToOne(() => User, { nullable: true, eager: true })

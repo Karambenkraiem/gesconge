@@ -59,6 +59,13 @@ export const congesAPI = {
   decider: (id: string, statut: string, remarque?: string) =>
     api.put(`/conges/${id}/decider`, { statut, remarque }),
   annuler: (id: string) => api.put(`/conges/${id}/annuler`),
+  uploadCertificat: (id: string, file: File) => {
+    const fd = new FormData();
+    fd.append('file', file);
+    return api.post(`/conges/${id}/certificat`, fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
 };
 
 // Notes

@@ -12,7 +12,7 @@ export class UsersService {
   ) {}
 
   async findAll() {
-    return this.userRepo.find({ select: ['id','email','nom','prenom','role','equipe','soldeConge','soldeInitial','telephone','matricule','actif','createdAt'] });
+    return this.userRepo.find({ select: ['id','email','nom','prenom','role','equipe','soldeConge','soldeInitial','telephone','matricule','unite','actif','createdAt'] });
   }
 
   async findOne(id: string) {
@@ -92,7 +92,7 @@ export class UsersService {
 
   async updateMyProfile(userId: string, dto: {
     nom?: string; prenom?: string; email?: string;
-    telephone?: string; matricule?: string; password?: string;
+    telephone?: string; matricule?: string; password?: string; unite?: string;
   }) {
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('Utilisateur non trouvé');

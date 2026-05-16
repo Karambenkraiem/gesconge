@@ -17,6 +17,7 @@ export default function ProfilePage() {
     email: user?.email || '',
     telephone: user?.telephone || '',
     matricule: user?.matricule || '',
+    unite: user?.unite || '',
     password: '',
     confirmPwd: '',
   });
@@ -35,6 +36,7 @@ export default function ProfilePage() {
         email: form.email,
         telephone: form.telephone,
         matricule: form.matricule,
+        unite: form.unite,
       };
       if (form.password) payload.password = form.password;
       await usersAPI.updateMe(payload);
@@ -98,6 +100,7 @@ export default function ProfilePage() {
         {[
           { icon: Hash, label: 'Matricule', value: user.matricule || '—' },
           { icon: Phone, label: 'Téléphone', value: user.telephone || '—' },
+          { icon: Shield, label: 'Unité', value: user.unite || '—' },
           { icon: Shield, label: 'Rôle', value: ROLE_LABELS[user.role] },
           { icon: Calendar, label: 'Membre depuis', value: format(new Date(user.createdAt), 'dd MMM yyyy', { locale: fr }) },
         ].map(({ icon: Icon, label, value }) => (
@@ -129,6 +132,7 @@ export default function ProfilePage() {
             { key: 'email', label: 'Email', type: 'email' },
             { key: 'matricule', label: 'Matricule', type: 'text' },
             { key: 'telephone', label: 'Téléphone', type: 'tel' },
+            { key: 'unite', label: 'Unité', type: 'text' },
           ].map(({ key, label, type }) => (
             <div key={key}>
               <label className="block text-xs font-bold text-slate-600 mb-1">{label}</label>

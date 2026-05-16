@@ -14,7 +14,7 @@ const EQUIPES: Equipe[] = ['A','B','C','D','NONE'];
 const blankForm = {
   email:'', password:'', nom:'', prenom:'',
   role:'operateur' as Role, equipe:'A' as Equipe,
-  telephone:'', matricule:'', solde: 0,
+  telephone:'', matricule:'', unite:'', solde: 0,
 };
 
 export default function AdminPage() {
@@ -53,7 +53,7 @@ export default function AdminPage() {
     setEditUser(u);
     setForm({ email: u.email, password:'', nom: u.nom, prenom: u.prenom,
       role: u.role, equipe: u.equipe, telephone: u.telephone||'',
-      matricule: u.matricule||'', solde: u.soldeConge });
+      matricule: u.matricule||'', unite: u.unite||'', solde: u.soldeConge });
     setShowForm(true);
   };
 
@@ -61,7 +61,7 @@ export default function AdminPage() {
     setSaving(true);
     try {
       if (editUser) {
-        const payload: any = { email: form.email, nom: form.nom, prenom: form.prenom, role: form.role, equipe: form.equipe, telephone: form.telephone, matricule: form.matricule };
+        const payload: any = { email: form.email, nom: form.nom, prenom: form.prenom, role: form.role, equipe: form.equipe, telephone: form.telephone, matricule: form.matricule, unite: form.unite };
         if (form.password) payload.password = form.password;
         await usersAPI.update(editUser.id, payload);
         toast.success('Agent mis à jour');
@@ -231,6 +231,7 @@ export default function AdminPage() {
                 { key: 'email', label: 'Email', type: 'email' },
                 { key: 'password', label: editUser ? 'Nouveau mot de passe (optionnel)' : 'Mot de passe', type: 'password' },
                 { key: 'matricule', label: 'Matricule', type: 'text' },
+                { key: 'unite', label: 'Unité', type: 'text' },
                 { key: 'telephone', label: 'Téléphone', type: 'tel' },
               ].map(({ key, label, type }) => (
                 <div key={key}>

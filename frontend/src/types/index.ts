@@ -19,6 +19,7 @@ export interface User {
   soldeInitial: number;
   telephone?: string;
   matricule?: string;
+  unite?: string;
   actif: boolean;
   createdAt: string;
 }
@@ -36,6 +37,9 @@ export interface Conge {
   typeConge: TypeConge;
   statut: StatutConge;
   motif?: string;
+  adresse_conge?: string;
+  certificat_medical?: string;
+  solde_au_depot?: number;
   remarqueManager?: string;
   manager?: User;
   dateDecision?: string;

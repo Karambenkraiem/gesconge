@@ -1,22 +1,25 @@
 'use client';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { congesAPI } from '../../../lib/api';
 import { useAuth } from '../../../contexts/AuthContext';
 import { TypeConge, TYPE_LABELS } from '../../../types';
 import toast from 'react-hot-toast';
-import { ArrowLeft, Send, Calendar, Info } from 'lucide-react';
+import { ArrowLeft, Send, Info, Paperclip, X } from 'lucide-react';
 import Link from 'next/link';
 
 export default function NouvelleDemandePage() {
   const { user, refreshProfile } = useAuth();
   const router = useRouter();
+  const fileRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
     dateDebut: '',
     dateFin: '',
     typeConge: 'annuel' as TypeConge,
     motif: '',
+    adresse_conge: '',
   });
+  const [certificat, setCertificat] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [nombreJours, setNombreJours] = useState(0);
 
@@ -39,11 +42,24 @@ export default function NouvelleDemandePage() {
       toast.error(`Solde insuffisant (${user?.soldeConge}j disponibles)`);
       return;
     }
+    if (form.typeConge === 'maladie' && !certificat) {
+      toast.error('Le certificat médical est obligatoire pour un congé maladie');
+      return;
+    }
     setLoading(true);
     try {
-      await congesAPI.create(form);
+      const res = await congesAPI.create({
+        dateDebut: form.dateDebut,
+        dateFin: form.dateFin,
+        typeConge: form.typeConge,
+        motif: form.motif,
+        adresse_conge: form.adresse_conge,
+      });
+      if (certificat && form.typeConge === 'maladie') {
+        await congesAPI.uploadCertificat(res.data.id, certificat);
+      }
       await refreshProfile();
-      toast.success('Demande envoyée avec succès 🎉');
+      toast.success('Demande envoyée avec succès');
       router.push('/dashboard/conges');
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Erreur lors de la soumission');
@@ -145,6 +161,51 @@ export default function NouvelleDemandePage() {
               <span className="text-slate-600 ml-1">jour{nombreJours > 1 ? 's' : ''} demandé{nombreJours > 1 ? 's' : ''}</span>
               {form.typeConge === 'annuel' && Number(user?.soldeConge) < nombreJours && (
                 <p className="text-xs text-red-600 mt-1 font-medium">⚠️ Solde insuffisant</p>
+              )}
+            </div>
+          )}
+
+          {/* Adresse pendant le congé */}
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-1">
+              Adresse pendant le congé <span className="text-slate-400 font-normal">(optionnel)</span>
+            </label>
+            <input
+              type="text"
+              value={form.adresse_conge}
+              onChange={e => setForm(f => ({ ...f, adresse_conge: e.target.value }))}
+              placeholder="Ex: 12 rue Ibn Khaldoun, Tunis"
+              className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            />
+          </div>
+
+          {/* Certificat médical — obligatoire pour maladie */}
+          {form.typeConge === 'maladie' && (
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-1">
+                Certificat médical <span className="text-red-500">*</span>
+              </label>
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*,.pdf"
+                className="hidden"
+                onChange={e => setCertificat(e.target.files?.[0] ?? null)}
+              />
+              {certificat ? (
+                <div className="flex items-center gap-2 px-3 py-2.5 border border-green-300 bg-green-50 rounded-xl text-sm">
+                  <Paperclip size={14} className="text-green-600 flex-shrink-0" />
+                  <span className="flex-1 truncate text-green-700 font-medium">{certificat.name}</span>
+                  <button type="button" onClick={() => { setCertificat(null); if (fileRef.current) fileRef.current.value = ''; }}>
+                    <X size={14} className="text-green-600" />
+                  </button>
+                </div>
+              ) : (
+                <button type="button" onClick={() => fileRef.current?.click()}
+                  className="w-full flex items-center justify-center gap-2 px-3 py-2.5 border-2 border-dashed border-slate-300 rounded-xl text-sm text-slate-500 hover:border-blue-400 hover:text-blue-600 transition-colors">
+                  <Paperclip size={14} />
+                  Joindre le certificat médical (image ou PDF)
+                </button>
               )}
             </div>
           )}

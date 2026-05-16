@@ -57,6 +57,9 @@ export class User {
   @Column({ nullable: true })
   matricule: string;
 
+  @Column({ nullable: true })
+  unite: string;
+
   @Column({ default: true })
   actif: boolean;
 

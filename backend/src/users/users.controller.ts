@@ -13,6 +13,7 @@ class UpdateMyProfileDto {
   @IsOptional() @IsEmail() email?: string;
   @IsOptional() @IsString() telephone?: string;
   @IsOptional() @IsString() matricule?: string;
+  @IsOptional() @IsString() unite?: string;
   @IsOptional() @IsString() @MinLength(6) password?: string;
 }
 
@@ -25,6 +26,7 @@ class CreateUserDto {
   @IsEnum(Equipe) equipe: Equipe;
   @IsOptional() @IsString() telephone?: string;
   @IsOptional() @IsString() matricule?: string;
+  @IsOptional() @IsString() unite?: string;
   @IsOptional() @IsNumber() soldeConge?: number;
   @IsOptional() @IsNumber() soldeInitial?: number;
 }
@@ -38,6 +40,7 @@ class UpdateUserDto {
   @IsOptional() @IsEnum(Equipe) equipe?: Equipe;
   @IsOptional() @IsString() telephone?: string;
   @IsOptional() @IsString() matricule?: string;
+  @IsOptional() @IsString() unite?: string;
 }
 
 class UpdateSoldeDto {

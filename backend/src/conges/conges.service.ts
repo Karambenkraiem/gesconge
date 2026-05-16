@@ -35,7 +35,7 @@ export class CongesService {
   }
 
   async create(userId: string, dto: {
-    dateDebut: string; dateFin: string; typeConge: TypeConge; motif?: string;
+    dateDebut: string; dateFin: string; typeConge: TypeConge; motif?: string; adresse_conge?: string;
   }) {
     const demandeur = await this.userRepo.findOne({ where: { id: userId } });
     if (!demandeur) throw new NotFoundException('Utilisateur non trouvé');
@@ -63,6 +63,8 @@ export class CongesService {
       nombreJours,
       typeConge: dto.typeConge,
       motif: dto.motif,
+      adresse_conge: dto.adresse_conge,
+      solde_au_depot: Number(demandeur.soldeConge),
       statut: StatutConge.EN_ATTENTE,
     });
     await this.congeRepo.save(conge);
@@ -131,6 +133,13 @@ export class CongesService {
     conge.statut = StatutConge.ANNULE;
     await this.congeRepo.save(conge);
     return conge;
+  }
+
+  async uploadCertificat(congeId: string, filePath: string, userId: string) {
+    const conge = await this.congeRepo.findOne({ where: { id: congeId } });
+    if (!conge) throw new NotFoundException('Congé non trouvé');
+    conge.certificat_medical = filePath;
+    return this.congeRepo.save(conge);
   }
 
   async getStats() {
