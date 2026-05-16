@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Calendar, PlusCircle, List, UserCircle, Users } from 'lucide-react';
+import { Home, Calendar, PlusCircle, List, UserCircle, Users, LayoutGrid } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function MobileNav() {
@@ -11,7 +11,9 @@ export default function MobileNav() {
 
   const items = [
     { href: '/dashboard', label: 'Accueil', icon: Home },
-    { href: '/dashboard/calendrier', label: 'Calendrier', icon: Calendar },
+    isManager
+      ? { href: '/dashboard/roulement', label: 'Roulement', icon: LayoutGrid }
+      : { href: '/dashboard/calendrier', label: 'Calendrier', icon: Calendar },
     { href: '/dashboard/nouvelle-demande', label: 'Demande', icon: PlusCircle, primary: true },
     { href: '/dashboard/conges', label: 'Congés', icon: List },
     isManager
