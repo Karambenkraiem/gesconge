@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(docker exec *)"
+      "Bash(docker exec *)",
+      "Bash(mkdir -p \"d:\\\\DesktopThinkBook\\\\CLDE PROJ\\\\GesConge-app\\\\conge-app\\\\frontend\\\\src\\\\app\\\\dashboard\\\\agents\\\\[id]\" 2>/dev/null; echo done)"
+    ],
+    "additionalDirectories": [
+      "d:\\DesktopThinkBook\\CLDE PROJ\\GesConge-app\\conge-app\\frontend\\src\\app\\dashboard\\agents"
     ]
   }
 }

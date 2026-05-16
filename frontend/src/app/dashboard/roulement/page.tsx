@@ -1,9 +1,10 @@
 'use client';
 import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuth } from '../../../contexts/AuthContext';
 import { usersAPI } from '../../../lib/api';
-import { User, ROLE_LABELS } from '../../../types';
+import { User, Role, ROLE_LABELS } from '../../../types';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const JOURS = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
@@ -29,6 +30,9 @@ const TEAM: Record<string, { bg: string; text: string; border: string; bgDark: s
   D: { bg:'#fef3c7', text:'#92400e', border:'#fcd34d', bgDark:'#d97706' },
 };
 
+// Ordre d'affichage des rôles dans le tableau
+const ROLE_ROWS: Role[] = ['chef_quart','chef_bloc','operateur','autre'];
+
 function Badge({ eq }: { eq: string }) {
   const s = TEAM[eq];
   return (
@@ -46,7 +50,8 @@ export default function RoulementPage() {
 
   const [year,  setYear]  = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
-  const [members, setMembers] = useState<Record<string, User[]>>({ A:[], B:[], C:[], D:[] });
+  // members[role][equipe] = User[]
+  const [members, setMembers] = useState<Record<string, Record<string, User[]>>>({});
 
   const isManager = user?.role === 'super_admin' || user?.role === 'chef_exploitation';
 
@@ -56,14 +61,14 @@ export default function RoulementPage() {
 
   useEffect(() => {
     usersAPI.getAll().then(res => {
-      const grouped: Record<string, User[]> = { A:[], B:[], C:[], D:[] };
-      const ROLE_ORDER: Record<string, number> = {
-        chef_quart: 0, chef_bloc: 1, operateur: 2, autre: 3,
-      };
+      // grouped[role][equipe] = User[]
+      const grouped: Record<string, Record<string, User[]>> = {};
+      ROLE_ROWS.forEach(r => { grouped[r] = { A:[], B:[], C:[], D:[] }; });
+
       (res.data as User[])
-        .filter(u => u.actif && ['A','B','C','D'].includes(u.equipe))
-        .sort((a, b) => (ROLE_ORDER[a.role] ?? 9) - (ROLE_ORDER[b.role] ?? 9))
-        .forEach(u => grouped[u.equipe].push(u));
+        .filter(u => u.actif && ['A','B','C','D'].includes(u.equipe) && ROLE_ROWS.includes(u.role as Role))
+        .forEach(u => grouped[u.role][u.equipe].push(u));
+
       setMembers(grouped);
     }).catch(() => {});
   }, []);
@@ -87,39 +92,48 @@ export default function RoulementPage() {
     <div className="max-w-lg mx-auto px-3 py-4 space-y-4">
       <h1 className="text-xl font-black text-slate-800">Roulement des Quarts</h1>
 
-      {/* ── Tableau des membres par équipe ── */}
+      {/* ── Tableau membres par équipe ── */}
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-        <div className="px-4 py-3 border-b border-slate-100 bg-slate-50">
+        <div className="px-4 py-2.5 border-b border-slate-100 bg-slate-50">
           <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Membres par équipe</p>
         </div>
-        <div className="grid grid-cols-4 divide-x divide-slate-100">
+
+        {/* En-tête colonnes équipes */}
+        <div className="grid grid-cols-4 border-b border-slate-200">
           {(['A','B','C','D'] as const).map(eq => (
-            <div key={eq} className="flex flex-col">
-              {/* En-tête équipe */}
-              <div className="py-2 text-center" style={{ backgroundColor: TEAM[eq].bg }}>
-                <span className="text-sm font-black" style={{ color: TEAM[eq].text }}>Éq. {eq}</span>
-                <p className="text-[10px] font-medium mt-0.5" style={{ color: TEAM[eq].text + 'cc' }}>
-                  {members[eq].length} agent{members[eq].length > 1 ? 's' : ''}
-                </p>
-              </div>
-              {/* Liste membres */}
-              <div className="divide-y divide-slate-50 flex-1">
-                {members[eq].length === 0 ? (
-                  <p className="text-[10px] text-slate-400 text-center py-3 px-1">—</p>
-                ) : members[eq].map(u => (
-                  <div key={u.id} className="px-2 py-2 border-b border-slate-50 last:border-0">
-                    <p className="text-[10px] font-bold text-slate-700 truncate leading-tight">
-                      {u.prenom} {u.nom}
-                    </p>
-                    <p className="text-[9px] text-slate-400 truncate mt-0.5">
-                      {ROLE_LABELS[u.role]}
-                    </p>
-                  </div>
-                ))}
-              </div>
+            <div key={eq} className="py-2 text-center" style={{ backgroundColor: TEAM[eq].bg }}>
+              <span className="text-xs font-black" style={{ color: TEAM[eq].text }}>Éq. {eq}</span>
             </div>
           ))}
         </div>
+
+        {/* Lignes par rôle */}
+        {ROLE_ROWS.map((role, ri) => {
+          const rowMembers = members[role] ?? { A:[], B:[], C:[], D:[] };
+          return (
+            <div key={role} className={`grid grid-cols-4 border-b border-slate-100 last:border-0 ${ri % 2 === 1 ? 'bg-slate-50/50' : ''}`}>
+              {/* Cellules par équipe */}
+              {(['A','B','C','D'] as const).map(eq => {
+                const agents = rowMembers[eq] ?? [];
+                return (
+                  <div key={eq} className="py-1.5 px-1 flex flex-col items-center justify-center gap-1 border-l border-slate-100 min-h-[3rem]">
+                    {agents.length === 0 ? (
+                      <span className="text-[10px] text-slate-300">—</span>
+                    ) : agents.map(u => (
+                      <Link key={u.id} href={`/dashboard/agents/${u.id}`}
+                        className="text-center w-full group">
+                        <p className="text-[10px] font-bold leading-tight text-center truncate px-0.5 group-hover:text-blue-600 group-hover:underline transition-colors"
+                          style={{ color: TEAM[eq].text }}>
+                          {u.prenom} {u.nom}
+                        </p>
+                      </Link>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })}
       </div>
 
       {/* ── Sélecteur mois ── */}
@@ -138,7 +152,6 @@ export default function RoulementPage() {
 
       {/* ── Tableau roulement ── */}
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-        {/* En-tête */}
         <div className="grid grid-cols-6 bg-slate-50 border-b border-slate-200 text-center">
           <div className="col-span-2 px-3 py-2.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wide">Date</div>
           {[['7h','14h'],['14h','20h'],['20h','7h']].map(([a,b],i) => (
@@ -152,7 +165,6 @@ export default function RoulementPage() {
           </div>
         </div>
 
-        {/* Lignes */}
         <div className="divide-y divide-slate-100">
           {days.map(({ d, date, jour, state }) => {
             const today   = isToday(d);

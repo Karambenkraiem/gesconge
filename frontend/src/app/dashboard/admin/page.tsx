@@ -5,6 +5,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { User, Role, Equipe, ROLE_LABELS, EQUIPE_COLORS } from '../../../types';
 import toast from 'react-hot-toast';
+import Link from 'next/link';
 import { Plus, Edit3, Users, X, Save, Trash2, AlertTriangle, RefreshCw } from 'lucide-react';
 
 const ROLES: Role[] = ['super_admin','chef_exploitation','chef_quart','chef_bloc','operateur','autre'];
@@ -153,7 +154,10 @@ export default function AdminPage() {
                   <span className="font-black text-sm">{u.prenom[0]}{u.nom[0]}</span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold text-slate-800 text-sm">{u.prenom} {u.nom}</p>
+                  <Link href={`/dashboard/agents/${u.id}`}
+                    className="font-bold text-slate-800 text-sm hover:text-blue-600 hover:underline transition-colors">
+                    {u.prenom} {u.nom}
+                  </Link>
                   <p className="text-xs text-slate-500">{ROLE_LABELS[u.role]} · Éq.{u.equipe}</p>
                   <p className="text-xs text-slate-400 truncate">{u.email}</p>
                 </div>

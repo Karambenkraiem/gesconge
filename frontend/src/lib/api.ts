@@ -61,6 +61,15 @@ export const congesAPI = {
   annuler: (id: string) => api.put(`/conges/${id}/annuler`),
 };
 
+// Notes
+export const notesAPI = {
+  getForAgent: (id: string) => api.get(`/notes/agent/${id}`),
+  upsertRendement: (data: { agent_id: string; annee: number; trimestre: number; note: number }) =>
+    api.post('/notes/rendement', data),
+  upsertProductivite: (data: { agent_id: string; annee: number; note: number }) =>
+    api.post('/notes/productivite', data),
+};
+
 // Notifications
 export const notifAPI = {
   getAll: () => api.get('/notifications'),
