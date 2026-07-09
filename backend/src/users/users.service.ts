@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Cron, CronExpression } from '@nestjs/schedule';
@@ -25,7 +25,12 @@ export class UsersService {
   async create(dto: Partial<User> & { password: string }) {
     const hashed = await bcrypt.hash(dto.password, 10);
     const user = this.userRepo.create({ ...dto, password: hashed });
-    await this.userRepo.save(user);
+    try {
+      await this.userRepo.save(user);
+    } catch (e: any) {
+      if (e.code === '23505') throw new ConflictException('Email ou matricule déjà utilisé');
+      throw e;
+    }
     const { password, ...rest } = user;
     return rest;
   }
@@ -37,7 +42,12 @@ export class UsersService {
       dto.password = await bcrypt.hash(dto.password, 10);
     }
     Object.assign(user, dto);
-    await this.userRepo.save(user);
+    try {
+      await this.userRepo.save(user);
+    } catch (e: any) {
+      if (e.code === '23505') throw new ConflictException('Email ou matricule déjà utilisé');
+      throw e;
+    }
     const { password, ...rest } = user;
     return rest;
   }
@@ -100,7 +110,12 @@ export class UsersService {
       dto.password = await bcrypt.hash(dto.password, 10);
     }
     Object.assign(user, dto);
-    await this.userRepo.save(user);
+    try {
+      await this.userRepo.save(user);
+    } catch (e: any) {
+      if (e.code === '23505') throw new ConflictException('Email ou matricule déjà utilisé');
+      throw e;
+    }
     const { password, ...rest } = user;
     return rest;
   }

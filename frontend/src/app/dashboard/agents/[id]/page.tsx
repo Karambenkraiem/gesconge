@@ -132,7 +132,7 @@ export default function AgentDetailPage() {
           {agent.prenom[0]}{agent.nom[0]}
         </div>
         <h2 className="text-xl font-black">{agent.prenom} {agent.nom}</h2>
-        <p className="text-blue-200 text-sm">{agent.email}</p>
+        <p className="text-blue-200 text-sm">Matricule : {agent.matricule || '—'}</p>
         <div className="flex items-center justify-center gap-2 mt-3 flex-wrap">
           <span className="bg-white/20 px-3 py-1 rounded-full text-xs font-bold">{ROLE_LABELS[agent.role]}</span>
           <span className="px-3 py-1 rounded-full text-xs font-bold text-white" style={{ backgroundColor: equipeColor }}>

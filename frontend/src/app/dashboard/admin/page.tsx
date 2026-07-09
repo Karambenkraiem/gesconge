@@ -58,6 +58,10 @@ export default function AdminPage() {
   };
 
   const handleSubmit = async () => {
+    if (!form.matricule.trim()) {
+      toast.error('Le matricule est obligatoire (identifiant de connexion)');
+      return;
+    }
     setSaving(true);
     try {
       if (editUser) {
@@ -159,7 +163,7 @@ export default function AdminPage() {
                     {u.prenom} {u.nom}
                   </Link>
                   <p className="text-xs text-slate-500">{ROLE_LABELS[u.role]} · Éq.{u.equipe}</p>
-                  <p className="text-xs text-slate-400 truncate">{u.email}</p>
+                  <p className="text-xs text-slate-400 truncate">Matricule : {u.matricule || '—'}</p>
                 </div>
                 <div className="flex items-center gap-1">
                   <span className="text-xs font-black text-blue-600 bg-blue-50 px-2 py-1 rounded-lg">{u.soldeConge}j</span>
@@ -230,16 +234,18 @@ export default function AdminPage() {
 
             <div className="p-4 space-y-3">
               {[
-                { key: 'prenom', label: 'Prénom', type: 'text' },
-                { key: 'nom', label: 'Nom', type: 'text' },
-                { key: 'email', label: 'Email', type: 'email' },
-                { key: 'password', label: editUser ? 'Nouveau mot de passe (optionnel)' : 'Mot de passe', type: 'password' },
-                { key: 'matricule', label: 'Matricule', type: 'text' },
-                { key: 'unite', label: 'Unité', type: 'text' },
-                { key: 'telephone', label: 'Téléphone', type: 'tel' },
-              ].map(({ key, label, type }) => (
+                { key: 'prenom', label: 'Prénom', type: 'text', required: true },
+                { key: 'nom', label: 'Nom', type: 'text', required: true },
+                { key: 'matricule', label: 'Matricule (identifiant de connexion)', type: 'text', required: true },
+                { key: 'password', label: editUser ? 'Nouveau mot de passe (optionnel)' : 'Mot de passe', type: 'password', required: !editUser },
+                { key: 'email', label: 'Email (contact, non utilisé pour la connexion)', type: 'email', required: false },
+                { key: 'unite', label: 'Unité', type: 'text', required: false },
+                { key: 'telephone', label: 'Téléphone', type: 'tel', required: false },
+              ].map(({ key, label, type, required }) => (
                 <div key={key}>
-                  <label className="block text-xs font-bold text-slate-600 mb-1">{label}</label>
+                  <label className="block text-xs font-bold text-slate-600 mb-1">
+                    {label}{required && <span className="text-red-500"> *</span>}
+                  </label>
                   <input type={type} value={(form as any)[key]}
                     onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
                     placeholder={label}

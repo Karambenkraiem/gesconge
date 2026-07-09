@@ -12,7 +12,7 @@ class UpdateMyProfileDto {
   @IsOptional() @IsString() prenom?: string;
   @IsOptional() @IsEmail() email?: string;
   @IsOptional() @IsString() telephone?: string;
-  @IsOptional() @IsString() matricule?: string;
+  @IsOptional() @IsString() @IsNotEmpty() matricule?: string;
   @IsOptional() @IsString() unite?: string;
   @IsOptional() @IsString() @MinLength(6) password?: string;
 }
@@ -39,7 +39,7 @@ class UpdateUserDto {
   @IsOptional() @IsEnum(Role) role?: Role;
   @IsOptional() @IsEnum(Equipe) equipe?: Equipe;
   @IsOptional() @IsString() telephone?: string;
-  @IsOptional() @IsString() matricule?: string;
+  @IsOptional() @IsString() @IsNotEmpty() matricule?: string;
   @IsOptional() @IsString() unite?: string;
 }
 

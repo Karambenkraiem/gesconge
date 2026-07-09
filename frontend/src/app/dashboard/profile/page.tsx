@@ -24,6 +24,10 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
+    if (!form.matricule.trim()) {
+      toast.error('Le matricule est obligatoire (identifiant de connexion)');
+      return;
+    }
     if (form.password && form.password !== form.confirmPwd) {
       toast.error('Les mots de passe ne correspondent pas');
       return;
@@ -62,7 +66,7 @@ export default function ProfilePage() {
           {user.prenom[0]}{user.nom[0]}
         </div>
         <h1 className="text-xl font-black">{user.prenom} {user.nom}</h1>
-        <p className="text-blue-200 text-sm mt-0.5">{user.email}</p>
+        <p className="text-blue-200 text-sm mt-0.5">Matricule : {user.matricule || '—'}</p>
         <div className="flex items-center justify-center gap-2 mt-3">
           <span className="bg-white/20 px-3 py-1 rounded-full text-xs font-bold backdrop-blur-sm">
             {ROLE_LABELS[user.role]}
@@ -129,8 +133,8 @@ export default function ProfilePage() {
           {[
             { key: 'prenom', label: 'Prénom', type: 'text' },
             { key: 'nom', label: 'Nom', type: 'text' },
-            { key: 'email', label: 'Email', type: 'email' },
-            { key: 'matricule', label: 'Matricule', type: 'text' },
+            { key: 'matricule', label: 'Matricule (identifiant de connexion)', type: 'text' },
+            { key: 'email', label: 'Email (contact, non utilisé pour la connexion)', type: 'email' },
             { key: 'telephone', label: 'Téléphone', type: 'tel' },
             { key: 'unite', label: 'Unité', type: 'text' },
           ].map(({ key, label, type }) => (
