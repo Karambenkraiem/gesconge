@@ -1,12 +1,12 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { usersAPI } from '../../../lib/api';
+import { usersAPI, settingsAPI } from '../../../lib/api';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { User, Role, Equipe, ROLE_LABELS, EQUIPE_COLORS } from '../../../types';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
-import { Plus, Edit3, Users, X, Save, Trash2, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Plus, Edit3, Users, X, Save, Trash2, AlertTriangle, RefreshCw, Monitor } from 'lucide-react';
 
 const ROLES: Role[] = ['super_admin','chef_exploitation','chef_quart','chef_bloc','operateur','autre'];
 const EQUIPES: Equipe[] = ['A','B','C','D','NONE'];
@@ -27,13 +27,35 @@ export default function AdminPage() {
   const [form, setForm] = useState({ ...blankForm });
   const [saving, setSaving] = useState(false);
   const [tab, setTab] = useState<'agents'|'soldes'>('agents');
+  const [demoMode, setDemoMode] = useState(false);
+  const [demoLoading, setDemoLoading] = useState(false);
 
   useEffect(() => {
     if (user && user.role !== 'super_admin' && user.role !== 'chef_exploitation') {
       router.replace('/dashboard');
     }
     fetchUsers();
-  }, []);
+    if (user?.role === 'super_admin') fetchDemoMode();
+  }, [user]);
+
+  const fetchDemoMode = async () => {
+    try {
+      const res = await settingsAPI.getDemoMode();
+      setDemoMode(res.data.enabled);
+    } catch {}
+  };
+
+  const toggleDemoMode = async () => {
+    setDemoLoading(true);
+    try {
+      const res = await settingsAPI.setDemoMode(!demoMode);
+      setDemoMode(res.data.enabled);
+      toast.success(res.data.enabled ? 'Mode démonstration activé' : 'Mode démonstration désactivé');
+    } catch {
+      toast.error('Erreur');
+    }
+    setDemoLoading(false);
+  };
 
   const fetchUsers = async () => {
     try {
@@ -135,6 +157,25 @@ export default function AdminPage() {
           </button>
         )}
       </div>
+
+      {isSuperAdmin && (
+        <div className={`flex items-center justify-between gap-3 mb-4 p-3 rounded-xl border ${demoMode ? 'bg-amber-50 border-amber-200' : 'bg-white border-slate-100'}`}>
+          <div className="flex items-center gap-2 min-w-0">
+            <Monitor size={16} className={demoMode ? 'text-amber-600' : 'text-slate-400'} />
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-slate-800">Mode démonstration</p>
+              <p className="text-xs text-slate-500 truncate">Affiche des boutons de connexion rapide sur /login</p>
+            </div>
+          </div>
+          <button
+            onClick={toggleDemoMode}
+            disabled={demoLoading}
+            className={`flex-shrink-0 w-12 h-7 rounded-full transition-all relative disabled:opacity-50 ${demoMode ? 'bg-amber-500' : 'bg-slate-300'}`}
+          >
+            <span className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all shadow ${demoMode ? 'left-6' : 'left-1'}`} />
+          </button>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="flex gap-2 mb-4">

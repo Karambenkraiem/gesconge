@@ -36,6 +36,12 @@ export const authAPI = {
   getProfile: () => api.get('/auth/profile'),
 };
 
+// Settings (demo mode)
+export const settingsAPI = {
+  getDemoMode: () => api.get('/settings/demo-mode'),
+  setDemoMode: (enabled: boolean) => api.put('/settings/demo-mode', { enabled }),
+};
+
 // Users
 export const usersAPI = {
   getAll: () => api.get('/users'),

@@ -1,30 +1,52 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../contexts/AuthContext';
+import { settingsAPI } from '../../lib/api';
 import toast from 'react-hot-toast';
-import { LogIn, Eye, EyeOff } from 'lucide-react';
+import { LogIn, Eye, EyeOff, Monitor } from 'lucide-react';
+import { ROLE_LABELS, Role } from '../../types';
+
+const DEMO_PASSWORD = '123456';
+
+interface DemoUser {
+  matricule: string;
+  nom: string;
+  prenom: string;
+  role: Role;
+}
 
 export default function LoginPage() {
   const [matricule, setMatricule] = useState('');
   const [password, setPassword] = useState('');
   const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [demoUsers, setDemoUsers] = useState<DemoUser[]>([]);
   const { login } = useAuth();
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!matricule || !password) { toast.error('Remplissez tous les champs'); return; }
+  useEffect(() => {
+    settingsAPI.getDemoMode()
+      .then(res => setDemoUsers(res.data.enabled ? res.data.users : []))
+      .catch(() => setDemoUsers([]));
+  }, []);
+
+  const doLogin = async (m: string, p: string) => {
     setLoading(true);
     try {
-      await login(matricule, password);
+      await login(m, p);
       router.replace('/dashboard');
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Identifiants incorrects');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!matricule || !password) { toast.error('Remplissez tous les champs'); return; }
+    doLogin(matricule, password);
   };
 
   return (
@@ -103,6 +125,28 @@ export default function LoginPage() {
             </button>
           </form>
         </div>
+
+        {demoUsers.length > 0 && (
+          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 mt-4 border border-white/20">
+            <div className="flex items-center gap-1.5 text-amber-200 text-xs font-bold mb-3">
+              <Monitor size={14} /> Mode démonstration — accès rapide
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {demoUsers.map(u => (
+                <button
+                  key={u.matricule}
+                  type="button"
+                  disabled={loading}
+                  onClick={() => doLogin(u.matricule, DEMO_PASSWORD)}
+                  className="text-left bg-white/90 hover:bg-white rounded-xl px-3 py-2 transition-all active:scale-95 disabled:opacity-50"
+                >
+                  <p className="text-xs font-bold text-gray-800 truncate">{u.prenom} {u.nom}</p>
+                  <p className="text-[10px] text-gray-500 truncate">{ROLE_LABELS[u.role]} · {u.matricule}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <p className="text-center text-blue-200/70 text-xs mt-6">
           Système de gestion des congés © {new Date().getFullYear()}

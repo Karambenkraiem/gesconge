@@ -8,6 +8,7 @@ import { UsersModule } from './users/users.module';
 import { CongesModule } from './conges/conges.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { NotesModule } from './notes/notes.module';
+import { SettingsModule } from './settings/settings.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { NotesModule } from './notes/notes.module';
     CongesModule,
     NotificationsModule,
     NotesModule,
+    SettingsModule,
   ],
 })
 export class AppModule {}
