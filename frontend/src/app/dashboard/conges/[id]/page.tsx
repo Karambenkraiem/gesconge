@@ -30,6 +30,8 @@ export default function CongeDetailPage() {
   const [decisionType, setDecisionType] = useState<'approuve' | 'refuse' | null>(null);
   const [showPrint, setShowPrint] = useState(false);
   const [certBlobUrl, setCertBlobUrl] = useState<string | null>(null);
+  const [showCertViewer, setShowCertViewer] = useState(false);
+  const [loadingCert, setLoadingCert] = useState(false);
 
   const isManager = user?.role === 'super_admin' || user?.role === 'chef_exploitation';
 
@@ -100,26 +102,31 @@ export default function CongeDetailPage() {
     : null;
   const isPdf = certFilename?.toLowerCase().endsWith('.pdf');
 
+  // Fetching as a blob (rather than a plain <a href>) is required because the
+  // file endpoint needs the JWT bearer header. window.open() on a blob: URL
+  // is unreliable inside the Capacitor WebView (no tabs, blocked navigation),
+  // so certificates are shown in an in-page viewer instead.
+  const loadCertBlob = async () => {
+    if (!certFilename || certBlobUrl) return certBlobUrl;
+    const res = await api.get(`/conges/file/${certFilename}`, { responseType: 'blob' });
+    const type = isPdf ? 'application/pdf' : ((res.headers['content-type'] as string) || 'image/jpeg');
+    const blob = new Blob([res.data], { type });
+    const url = URL.createObjectURL(blob);
+    setCertBlobUrl(url);
+    return url;
+  };
+
   const openCertificat = async () => {
     if (!certFilename) return;
+    setLoadingCert(true);
     try {
-      const res = await api.get(`/conges/file/${certFilename}`, { responseType: 'blob' });
-      const blob = new Blob([res.data], { type: (res.headers['content-type'] as string) || 'application/octet-stream' });
-      const url = URL.createObjectURL(blob);
-      window.open(url, '_blank');
+      await loadCertBlob();
+      setShowCertViewer(true);
     } catch { toast.error('Impossible d\'ouvrir le fichier'); }
+    setLoadingCert(false);
   };
 
-  const loadCertPreview = async () => {
-    if (!certFilename || isPdf || certBlobUrl) return;
-    try {
-      const res = await api.get(`/conges/file/${certFilename}`, { responseType: 'blob' });
-      const blob = new Blob([res.data], { type: 'image/jpeg' });
-      setCertBlobUrl(URL.createObjectURL(blob));
-    } catch {}
-  };
-
-  if (certFilename && !isPdf && !certBlobUrl) loadCertPreview();
+  if (certFilename && !isPdf && !certBlobUrl) loadCertBlob().catch(() => {});
 
   return (
     <div className="max-w-lg mx-auto">
@@ -209,10 +216,11 @@ export default function CongeDetailPage() {
                 )}
                 <button
                   onClick={openCertificat}
-                  className="w-full flex items-center gap-2 px-3 py-2.5 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-700 font-medium hover:bg-blue-100 transition-colors"
+                  disabled={loadingCert}
+                  className="w-full flex items-center gap-2 px-3 py-2.5 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-700 font-medium hover:bg-blue-100 transition-colors disabled:opacity-50"
                 >
                   <FileText size={16} />
-                  {isPdf ? 'Ouvrir le certificat PDF' : 'Voir en plein écran'}
+                  {isPdf ? 'Voir le certificat PDF' : 'Voir en plein écran'}
                   <ExternalLink size={12} className="ml-auto" />
                 </button>
               </div>
@@ -318,6 +326,25 @@ export default function CongeDetailPage() {
                 {actionLoading ? '...' : 'Confirmer'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal visualisation certificat médical */}
+      {showCertViewer && certBlobUrl && (
+        <div className="fixed inset-0 z-50 flex flex-col bg-black/90">
+          <div className="flex items-center justify-between px-4 py-3 flex-shrink-0">
+            <p className="text-white text-sm font-bold">Certificat médical</p>
+            <button onClick={() => setShowCertViewer(false)} className="p-1.5 rounded-lg hover:bg-white/10">
+              <X size={20} className="text-white" />
+            </button>
+          </div>
+          <div className="flex-1 overflow-auto">
+            {isPdf ? (
+              <iframe src={certBlobUrl} className="w-full h-full border-0" title="Certificat médical" />
+            ) : (
+              <img src={certBlobUrl} alt="Certificat médical" className="w-full h-full object-contain" />
+            )}
           </div>
         </div>
       )}
