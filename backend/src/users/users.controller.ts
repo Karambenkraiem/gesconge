@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Request, ForbiddenException } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { RolesGuard } from '../guards/roles.guard';
@@ -96,7 +96,10 @@ export class UsersController {
 
   @Delete(':id')
   @Roles(Role.SUPER_ADMIN)
-  deactivate(@Param('id') id: string) {
+  deactivate(@Request() req, @Param('id') id: string) {
+    if (id === req.user.userId) {
+      throw new ForbiddenException('Vous ne pouvez pas désactiver votre propre compte');
+    }
     return this.usersService.deactivate(id);
   }
 
@@ -108,7 +111,10 @@ export class UsersController {
 
   @Delete(':id/supprimer')
   @Roles(Role.SUPER_ADMIN)
-  deleteForever(@Param('id') id: string) {
+  deleteForever(@Request() req, @Param('id') id: string) {
+    if (id === req.user.userId) {
+      throw new ForbiddenException('Vous ne pouvez pas supprimer votre propre compte');
+    }
     return this.usersService.deleteForever(id);
   }
 }

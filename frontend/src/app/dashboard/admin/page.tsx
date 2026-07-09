@@ -168,18 +168,22 @@ export default function AdminPage() {
                       <button onClick={() => openEdit(u)} className="p-1.5 rounded-lg hover:bg-slate-100" title="Modifier">
                         <Edit3 size={14} className="text-slate-500" />
                       </button>
-                      {u.actif ? (
-                        <button onClick={() => deactivate(u.id, u.nom, u.prenom)} className="p-1.5 rounded-lg hover:bg-red-50" title="Désactiver">
-                          <Trash2 size={14} className="text-red-400" />
-                        </button>
-                      ) : (
-                        <button onClick={() => reactivate(u.id, u.nom, u.prenom)} className="p-1.5 rounded-lg hover:bg-green-50" title="Réactiver">
-                          <RefreshCw size={14} className="text-green-600" />
-                        </button>
+                      {u.id !== user?.id && (
+                        <>
+                          {u.actif ? (
+                            <button onClick={() => deactivate(u.id, u.nom, u.prenom)} className="p-1.5 rounded-lg hover:bg-red-50" title="Désactiver">
+                              <Trash2 size={14} className="text-red-400" />
+                            </button>
+                          ) : (
+                            <button onClick={() => reactivate(u.id, u.nom, u.prenom)} className="p-1.5 rounded-lg hover:bg-green-50" title="Réactiver">
+                              <RefreshCw size={14} className="text-green-600" />
+                            </button>
+                          )}
+                          <button onClick={() => deleteForever(u.id, u.nom, u.prenom)} className="p-1.5 rounded-lg hover:bg-red-100" title="Supprimer définitivement">
+                            <AlertTriangle size={14} className="text-red-600" />
+                          </button>
+                        </>
                       )}
-                      <button onClick={() => deleteForever(u.id, u.nom, u.prenom)} className="p-1.5 rounded-lg hover:bg-red-100" title="Supprimer définitivement">
-                        <AlertTriangle size={14} className="text-red-600" />
-                      </button>
                     </>
                   )}
                 </div>
