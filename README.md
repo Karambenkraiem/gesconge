@@ -79,16 +79,18 @@ npm run start:dev
 # Docs Swagger : http://localhost:3001/api-docs
 ```
 
-#### Seed initial (créer super admin + données de test)
+#### Seed initial (créer le super admin)
 
 ```bash
 npm run seed
 ```
 
-La connexion se fait par **matricule** (pas par email). Comptes créés :
+La connexion se fait par **matricule** (pas par email). Compte créé :
 | Matricule | Mot de passe | Rôle               |
 |-----------|--------------|--------------------|
-| ADMIN001  | Admin@2024   | Super Admin        |
+| ADMIN001  | 123456       | Super Admin        |
+
+Les autres comptes (chef exploitation, agents) sont à créer depuis l'écran d'administration une fois connecté.
 | CHEF001   | Chef@2024    | Chef Exploitation  |
 | QA001     | Agent@2024   | Chef de Quart Éq.A |
 | OA001     | Agent@2024   | Opérateur Éq.A     |
