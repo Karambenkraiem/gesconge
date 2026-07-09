@@ -9,7 +9,12 @@ disponible dans l'app sans repasser par le Play Store / App Store.
 Config déjà en place dans le repo :
 - `frontend/capacitor.config.ts` — pointe vers `gesconge.alkaramsoft.ovh`
 - `frontend/mobile-www/index.html` — écran de secours minimal (webDir requis par Capacitor)
-- `frontend/package.json` — dépendances `@capacitor/*` + scripts `android:*`
+- `frontend/package.json` — dépendances `@capacitor/*` (v8) + scripts `android:*`
+
+### Compatibilité vérifiée
+- **Auth, appels API, upload de fichier** : fonctionnent nativement dans le WebView (JWT en localStorage, appels same-origin, `<input type="file">` standard) — aucun ajustement nécessaire.
+- **Visualisation du certificat médical** : corrigée pour s'afficher dans une visionneuse intégrée à la page plutôt que via `window.open()`, qui ne fonctionne pas de façon fiable dans un WebView Capacitor.
+- **Impression du formulaire de congé** (`window.print()` n'a pas de dialogue natif dans un WebView) : remplacée par [`@capgo/capacitor-printer`](https://capgo.app/docs/plugins/printer/) (`Printer.printWebView()`), qui déclenche l'impression native iOS/Android tout en gardant le dialogue navigateur classique sur le site web. C'est ce qui a motivé le passage de Capacitor 6 → 8 (seule version supportée par ce plugin).
 
 ---
 
@@ -36,6 +41,18 @@ Dans Android Studio :
 1. **Build → Generate Signed Bundle / APK**.
 2. Créer un keystore (`.jks`) si vous n'en avez pas — **conservez-le précieusement**, il est requis pour toute mise à jour future publiée sur le Play Store.
 3. Choisir **Android App Bundle (.aab)** pour une publication Play Store, ou **APK** pour une distribution directe (site web, email).
+
+### Config requise par le plugin d'impression (après `npm run android:add`)
+Ajoutez dans `frontend/android/app/proguard-rules.pro` :
+```pro
+-keep class com.capgo.printer.** { *; }
+```
+Et dans `frontend/android/variables.gradle`, dans le bloc `ext { ... }` :
+```gradle
+androidxDocumentFileVersion = '1.0.1'
+androidxPrintVersion = '1.0.0'
+```
+(Uniquement nécessaire une fois, après la génération du projet natif — sinon l'impression pourrait échouer en build release à cause du ProGuard.)
 
 ### Icônes / splash screen
 Remplacer les icônes par défaut avec l'outil officiel :

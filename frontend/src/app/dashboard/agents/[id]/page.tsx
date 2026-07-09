@@ -9,6 +9,7 @@ import { ArrowLeft, Phone, Hash, Shield, Users, Calendar, Save, Printer, X } fro
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import toast from 'react-hot-toast';
+import { Printer as PrinterPlugin } from '@capgo/capacitor-printer';
 
 const NOW = new Date();
 const THIS_YEAR = NOW.getFullYear();
@@ -47,6 +48,14 @@ export default function AgentDetailPage() {
   const [printConge, setPrintConge] = useState<Conge | null>(null);
 
   const isManager = me?.role === 'super_admin' || me?.role === 'chef_exploitation';
+
+  const handlePrint = async () => {
+    try {
+      await PrinterPlugin.printWebView({ name: 'Formulaire de congé' });
+    } catch {
+      toast.error('Impossible de lancer l\'impression');
+    }
+  };
 
   useEffect(() => {
     if (me && !isManager) router.replace('/dashboard');
@@ -282,7 +291,7 @@ export default function AgentDetailPage() {
               <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 print:hidden flex-shrink-0">
                 <p className="font-bold text-slate-700 text-sm">Aperçu — Formulaire de demande de congé</p>
                 <div className="flex items-center gap-2">
-                  <button onClick={() => window.print()}
+                  <button onClick={handlePrint}
                     className="flex items-center gap-1.5 bg-blue-600 text-white text-xs font-bold px-3 py-2 rounded-xl">
                     <Printer size={14} /> Imprimer / PDF
                   </button>
