@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Backend build output (dist/seed.js is intentionally committed, keep the rest ignored)
+backend/dist/*
+!backend/dist/seed.js
+
+# Frontend build output
+frontend/.next/
+frontend/out/
+
+# Env files (never commit real secrets)
+.env
+.env.local
+.env.prod
+*.env.local
+
+# Capacitor / mobile native projects (generated, rebuilt via `npx cap sync`)
+frontend/android/
+frontend/ios/
+frontend/mobile-www/.next/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

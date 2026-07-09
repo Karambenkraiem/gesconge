@@ -3,11 +3,15 @@ import { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
   appId: 'dz.gesconge.app',
   appName: 'GesConge',
-  webDir: 'out',
+  webDir: 'mobile-www',
   server: {
-    // For development: point to your deployed Next.js URL
-    // url: 'http://192.168.1.100:3000',
-    // cleartext: true,
+    // The app is a full Next.js server (SSR + API routes), so it can't be
+    // shipped as a static bundle. Instead the native shell loads the live
+    // deployed site directly — same approach as most production apps
+    // wrapping a server-rendered web app.
+    url: 'https://gesconge.alkaramsoft.ovh',
+    cleartext: false,
+    allowNavigation: ['gesconge.alkaramsoft.ovh'],
   },
   plugins: {
     SplashScreen: {

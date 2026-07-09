@@ -2,6 +2,9 @@
 
 Application web/mobile complète pour la gestion des congés des équipes de quart (A, B, C, D).
 
+> Déploiement production sur le VPS partagé (nginx, CI/CD) : voir [DEPLOYMENT.md](./DEPLOYMENT.md).
+> Build des apps Android / iOS : voir [MOBILE.md](./MOBILE.md).
+
 ---
 
 ## 🏗️ Architecture

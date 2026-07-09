@@ -1,20 +1,26 @@
 version: '3.8'
 
+# Production compose file for the VPS.
+# gesconge_backend and gesconge_frontend join the pre-existing external
+# "proxy_net" network so the shared dataserv-nginx container can reach them
+# by container name. No ports are published on the host — everything is
+# routed through that shared nginx (see deploy/nginx-gesconge.conf).
+
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: conge_db
+    container_name: gesconge_postgres_prod
     restart: unless-stopped
     environment:
-      POSTGRES_USER: conge_user
-      POSTGRES_PASSWORD: CongeSecure@2024
-      POSTGRES_DB: conge_db
-    ports:
-      - "5434:5432"
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - gesconge_internal
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U conge_user -d conge_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -23,7 +29,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: conge_backend
+    container_name: gesconge_backend_prod
     restart: unless-stopped
     depends_on:
       postgres:
@@ -31,29 +37,39 @@ services:
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_USER: conge_user
-      DB_PASSWORD: CongeSecure@2024
-      DB_NAME: conge_db
-      JWT_SECRET: ${JWT_SECRET:-gesconge-super-secret-jwt-key-2024-change-me}
-      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3004}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      JWT_SECRET: ${JWT_SECRET}
+      FRONTEND_URL: ${FRONTEND_URL}
       PORT: 3001
-    ports:
-      - "3005:3001"
+    volumes:
+      - uploads:/app/uploads
+    networks:
+      - gesconge_internal
+      - proxy_net
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3005}
-    container_name: conge_frontend
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+    container_name: gesconge_frontend_prod
     restart: unless-stopped
     depends_on:
       - backend
     environment:
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3005}
-    ports:
-      - "3004:3000"
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+    networks:
+      - proxy_net
+
+networks:
+  gesconge_internal:
+    driver: bridge
+  proxy_net:
+    external: true
 
 volumes:
   postgres_data:
+  uploads:
