@@ -12,7 +12,6 @@ class UpdateMyProfileDto {
   @IsOptional() @IsString() prenom?: string;
   @IsOptional() @IsEmail() email?: string;
   @IsOptional() @IsString() telephone?: string;
-  @IsOptional() @IsString() @IsNotEmpty() matricule?: string;
   @IsOptional() @IsString() unite?: string;
   @IsOptional() @IsString() @MinLength(6) password?: string;
 }

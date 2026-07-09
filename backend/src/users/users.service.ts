@@ -102,7 +102,7 @@ export class UsersService {
 
   async updateMyProfile(userId: string, dto: {
     nom?: string; prenom?: string; email?: string;
-    telephone?: string; matricule?: string; password?: string; unite?: string;
+    telephone?: string; password?: string; unite?: string;
   }) {
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('Utilisateur non trouvé');

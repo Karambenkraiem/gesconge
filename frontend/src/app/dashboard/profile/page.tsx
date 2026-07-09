@@ -16,7 +16,6 @@ export default function ProfilePage() {
     prenom: user?.prenom || '',
     email: user?.email || '',
     telephone: user?.telephone || '',
-    matricule: user?.matricule || '',
     unite: user?.unite || '',
     password: '',
     confirmPwd: '',
@@ -24,10 +23,6 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
-    if (!form.matricule.trim()) {
-      toast.error('Le matricule est obligatoire (identifiant de connexion)');
-      return;
-    }
     if (form.password && form.password !== form.confirmPwd) {
       toast.error('Les mots de passe ne correspondent pas');
       return;
@@ -39,7 +34,6 @@ export default function ProfilePage() {
         prenom: form.prenom,
         email: form.email,
         telephone: form.telephone,
-        matricule: form.matricule,
         unite: form.unite,
       };
       if (form.password) payload.password = form.password;
@@ -130,10 +124,13 @@ export default function ProfilePage() {
         <div className="bg-white rounded-2xl border border-slate-100 p-4 space-y-3">
           <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">Modifier</p>
 
+          <p className="text-xs text-slate-400 -mt-1">
+            Le matricule (identifiant de connexion) ne peut être modifié que par un administrateur.
+          </p>
+
           {[
             { key: 'prenom', label: 'Prénom', type: 'text' },
             { key: 'nom', label: 'Nom', type: 'text' },
-            { key: 'matricule', label: 'Matricule (identifiant de connexion)', type: 'text' },
             { key: 'email', label: 'Email (contact, non utilisé pour la connexion)', type: 'email' },
             { key: 'telephone', label: 'Téléphone', type: 'tel' },
             { key: 'unite', label: 'Unité', type: 'text' },
