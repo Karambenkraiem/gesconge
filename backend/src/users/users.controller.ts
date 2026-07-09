@@ -5,7 +5,7 @@ import { RolesGuard } from '../guards/roles.guard';
 import { Roles } from '../decorators/roles.decorator';
 import { Role, Equipe } from './user.entity';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
-import { IsEmail, IsString, IsEnum, IsOptional, IsNumber, Min, MinLength } from 'class-validator';
+import { IsEmail, IsString, IsEnum, IsOptional, IsNotEmpty, IsNumber, Min, MinLength } from 'class-validator';
 
 class UpdateMyProfileDto {
   @IsOptional() @IsString() nom?: string;
@@ -25,7 +25,7 @@ class CreateUserDto {
   @IsEnum(Role) role: Role;
   @IsEnum(Equipe) equipe: Equipe;
   @IsOptional() @IsString() telephone?: string;
-  @IsOptional() @IsString() matricule?: string;
+  @IsString() @IsNotEmpty() matricule: string;
   @IsOptional() @IsString() unite?: string;
   @IsOptional() @IsNumber() soldeConge?: number;
   @IsOptional() @IsNumber() soldeInitial?: number;

@@ -1,12 +1,12 @@
 import { Controller, Post, Body, Get, UseGuards, Request } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
-import { IsEmail, IsString, IsEnum, IsOptional, MinLength } from 'class-validator';
+import { IsEmail, IsString, IsEnum, IsOptional, IsNotEmpty, MinLength } from 'class-validator';
 import { Role, Equipe } from '../users/user.entity';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
 class LoginDto {
-  @IsEmail() email: string;
+  @IsString() @IsNotEmpty() matricule: string;
   @IsString() password: string;
 }
 
@@ -18,7 +18,7 @@ class RegisterDto {
   @IsEnum(Role) role: Role;
   @IsEnum(Equipe) equipe: Equipe;
   @IsOptional() @IsString() telephone?: string;
-  @IsOptional() @IsString() matricule?: string;
+  @IsString() @IsNotEmpty() matricule: string;
 }
 
 @ApiTags('Auth')
@@ -28,7 +28,7 @@ export class AuthController {
 
   @Post('login')
   login(@Body() dto: LoginDto) {
-    return this.authService.login(dto.email, dto.password);
+    return this.authService.login(dto.matricule, dto.password);
   }
 
   @Post('register')

@@ -14,6 +14,7 @@ async function seed() {
     const hash = await bcrypt.hash('Admin@2024', 10);
     await userRepo.save(userRepo.create({
       email: 'admin@gesconge.dz',
+      matricule: 'ADMIN001',
       password: hash,
       nom: 'Administrateur',
       prenom: 'Super',
@@ -23,7 +24,7 @@ async function seed() {
       soldeInitial: 0,
       actif: true,
     }));
-    console.log('✅ Super admin créé: admin@gesconge.dz / Admin@2024');
+    console.log('✅ Super admin créé: matricule ADMIN001 / Admin@2024');
   } else {
     console.log('ℹ️  Super admin existe déjà');
   }
@@ -34,6 +35,7 @@ async function seed() {
     const hash = await bcrypt.hash('Chef@2024', 10);
     await userRepo.save(userRepo.create({
       email: 'chef@gesconge.dz',
+      matricule: 'CHEF001',
       password: hash,
       nom: 'Exploitation',
       prenom: 'Chef',
@@ -43,16 +45,16 @@ async function seed() {
       soldeInitial: 30,
       actif: true,
     }));
-    console.log('✅ Chef exploitation créé: chef@gesconge.dz / Chef@2024');
+    console.log('✅ Chef exploitation créé: matricule CHEF001 / Chef@2024');
   }
 
   // Sample agents for each team
   const agents = [
-    { email: 'quart.a@gesconge.dz', prenom: 'Ali', nom: 'Benali', role: Role.CHEF_QUART, equipe: Equipe.A },
-    { email: 'quart.b@gesconge.dz', prenom: 'Omar', nom: 'Khelil', role: Role.CHEF_QUART, equipe: Equipe.B },
-    { email: 'bloc.a@gesconge.dz', prenom: 'Fatima', nom: 'Meziane', role: Role.CHEF_BLOC, equipe: Equipe.A },
-    { email: 'op.a@gesconge.dz', prenom: 'Karim', nom: 'Saidi', role: Role.OPERATEUR, equipe: Equipe.A },
-    { email: 'op.c@gesconge.dz', prenom: 'Leila', nom: 'Mansouri', role: Role.OPERATEUR, equipe: Equipe.C },
+    { email: 'quart.a@gesconge.dz', matricule: 'QA001', prenom: 'Ali', nom: 'Benali', role: Role.CHEF_QUART, equipe: Equipe.A },
+    { email: 'quart.b@gesconge.dz', matricule: 'QB001', prenom: 'Omar', nom: 'Khelil', role: Role.CHEF_QUART, equipe: Equipe.B },
+    { email: 'bloc.a@gesconge.dz', matricule: 'BA001', prenom: 'Fatima', nom: 'Meziane', role: Role.CHEF_BLOC, equipe: Equipe.A },
+    { email: 'op.a@gesconge.dz', matricule: 'OA001', prenom: 'Karim', nom: 'Saidi', role: Role.OPERATEUR, equipe: Equipe.A },
+    { email: 'op.c@gesconge.dz', matricule: 'OC001', prenom: 'Leila', nom: 'Mansouri', role: Role.OPERATEUR, equipe: Equipe.C },
   ];
 
   for (const a of agents) {
@@ -66,7 +68,7 @@ async function seed() {
         soldeInitial: 18,
         actif: true,
       }));
-      console.log(`✅ Agent créé: ${a.email} / Agent@2024`);
+      console.log(`✅ Agent créé: matricule ${a.matricule} / Agent@2024`);
     }
   }
 

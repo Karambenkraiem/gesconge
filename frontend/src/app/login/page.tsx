@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 import { LogIn, Eye, EyeOff } from 'lucide-react';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
+  const [matricule, setMatricule] = useState('');
   const [password, setPassword] = useState('');
   const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -15,10 +15,10 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) { toast.error('Remplissez tous les champs'); return; }
+    if (!matricule || !password) { toast.error('Remplissez tous les champs'); return; }
     setLoading(true);
     try {
-      await login(email, password);
+      await login(matricule, password);
       router.replace('/dashboard');
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Identifiants incorrects');
@@ -55,15 +55,15 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-semibold text-gray-600 mb-1">
-                Email
+                Matricule
               </label>
               <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="votre@email.com"
+                type="text"
+                value={matricule}
+                onChange={e => setMatricule(e.target.value)}
+                placeholder="Ex: OA001"
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-gray-50"
-                autoComplete="email"
+                autoComplete="username"
               />
             </div>
 

@@ -6,7 +6,7 @@ import { authAPI } from '../lib/api';
 interface AuthCtx {
   user: User | null;
   token: string | null;
-  login: (email: string, password: string) => Promise<void>;
+  login: (matricule: string, password: string) => Promise<void>;
   logout: () => void;
   refreshProfile: () => Promise<void>;
   loading: boolean;
@@ -34,8 +34,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   }, []);
 
-  const login = async (email: string, password: string) => {
-    const res = await authAPI.login(email, password);
+  const login = async (matricule: string, password: string) => {
+    const res = await authAPI.login(matricule, password);
     const { token: t, user: u } = res.data;
     setToken(t);
     setUser(u);

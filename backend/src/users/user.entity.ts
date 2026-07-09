@@ -54,7 +54,7 @@ export class User {
   @Column({ nullable: true })
   telephone: string;
 
-  @Column({ nullable: true })
+  @Column({ unique: true, nullable: true })
   matricule: string;
 
   @Column({ nullable: true })

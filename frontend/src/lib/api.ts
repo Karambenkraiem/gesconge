@@ -31,8 +31,8 @@ export default api;
 
 // Auth
 export const authAPI = {
-  login: (email: string, password: string) =>
-    api.post('/auth/login', { email, password }),
+  login: (matricule: string, password: string) =>
+    api.post('/auth/login', { matricule, password }),
   getProfile: () => api.get('/auth/profile'),
 };
 

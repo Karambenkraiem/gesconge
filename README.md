@@ -85,13 +85,13 @@ npm run start:dev
 npm run seed
 ```
 
-Comptes créés :
-| Email                  | Mot de passe | Rôle               |
-|------------------------|--------------|--------------------|
-| admin@gesconge.dz      | Admin@2024   | Super Admin        |
-| chef@gesconge.dz       | Chef@2024    | Chef Exploitation  |
-| quart.a@gesconge.dz    | Agent@2024   | Chef de Quart Éq.A |
-| op.a@gesconge.dz       | Agent@2024   | Opérateur Éq.A     |
+La connexion se fait par **matricule** (pas par email). Comptes créés :
+| Matricule | Mot de passe | Rôle               |
+|-----------|--------------|--------------------|
+| ADMIN001  | Admin@2024   | Super Admin        |
+| CHEF001   | Chef@2024    | Chef Exploitation  |
+| QA001     | Agent@2024   | Chef de Quart Éq.A |
+| OA001     | Agent@2024   | Opérateur Éq.A     |
 
 #### 3. Frontend (Next.js)
 
