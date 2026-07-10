@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../../contexts/AuthContext';
 import { settingsAPI } from '../../lib/api';
 import toast from 'react-hot-toast';
-import { LogIn, Eye, EyeOff, Monitor } from 'lucide-react';
+import { LogIn, Eye, EyeOff, Monitor, QrCode, X } from 'lucide-react';
 import { ROLE_LABELS, Role } from '../../types';
 
 const DEMO_PASSWORD = '123456';
@@ -22,6 +22,7 @@ export default function LoginPage() {
   const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
   const [demoUsers, setDemoUsers] = useState<DemoUser[]>([]);
+  const [showAppModal, setShowAppModal] = useState(false);
   const { login } = useAuth();
   const router = useRouter();
 
@@ -29,6 +30,15 @@ export default function LoginPage() {
     settingsAPI.getDemoMode()
       .then(res => setDemoUsers(res.data.enabled ? res.data.users : []))
       .catch(() => setDemoUsers([]));
+  }, []);
+
+  useEffect(() => {
+    const isWindows = /Windows/i.test(navigator.userAgent);
+    const alreadySeen = sessionStorage.getItem('gesconge_app_qr_seen');
+    if (isWindows && !alreadySeen) {
+      setShowAppModal(true);
+      sessionStorage.setItem('gesconge_app_qr_seen', '1');
+    }
   }, []);
 
   const doLogin = async (m: string, p: string) => {
@@ -148,10 +158,48 @@ export default function LoginPage() {
           </div>
         )}
 
+        <button
+          type="button"
+          onClick={() => setShowAppModal(true)}
+          className="w-full flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-2xl p-3 mt-4 border border-white/20 hover:bg-white/15 transition-all active:scale-95"
+        >
+          <img src="/android-qr.png" alt="QR code app Android" className="w-10 h-10 rounded-lg bg-white p-0.5 flex-shrink-0" />
+          <span className="text-left text-blue-100 text-xs font-semibold leading-snug">
+            Installer l'app GesConge sur Android
+            <span className="block text-blue-200/70 font-normal">Scanner le QR code</span>
+          </span>
+        </button>
+
         <p className="text-center text-blue-200/70 text-xs mt-6">
           Système de gestion des congés © {new Date().getFullYear()}
         </p>
       </div>
+
+      {showAppModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60" onClick={() => setShowAppModal(false)} />
+          <div className="relative bg-white w-full max-w-xs rounded-2xl p-6 text-center slide-up">
+            <button
+              onClick={() => setShowAppModal(false)}
+              className="absolute right-3 top-3 p-1.5 rounded-lg hover:bg-gray-100 text-gray-400"
+            >
+              <X size={18} />
+            </button>
+            <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+              <QrCode size={20} className="text-blue-600" />
+            </div>
+            <h3 className="font-black text-gray-800 text-base mb-1">Application Android disponible</h3>
+            <p className="text-gray-500 text-xs mb-4">
+              Scannez ce QR code avec votre téléphone pour installer GesConge.
+            </p>
+            <img src="/android-qr.png" alt="QR code de téléchargement GesConge Android" className="w-40 h-40 mx-auto rounded-xl border border-gray-100" />
+            <p className="text-[11px] text-gray-400 mt-4 leading-relaxed">
+              Build de démonstration, hors Play Store. Android affichera un avertissement
+              « source inconnue » à autoriser pour installer.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
