@@ -8,6 +8,15 @@ import { User, Role } from '../users/user.entity';
 import { NotificationsService } from '../notifications/notifications.service';
 import { TypeNotification } from '../notifications/notification.entity';
 
+const ROLE_LABELS_FR: Record<Role, string> = {
+  [Role.SUPER_ADMIN]: 'Super Admin',
+  [Role.CHEF_EXPLOITATION]: 'Chef d\'Exploitation',
+  [Role.CHEF_QUART]: 'Chef de Quart',
+  [Role.CHEF_BLOC]: 'Chef de Bloc',
+  [Role.OPERATEUR]: 'Opérateur',
+  [Role.AUTRE]: 'Autre',
+};
+
 @Injectable()
 export class CongesService {
   constructor(
@@ -15,6 +24,22 @@ export class CongesService {
     @InjectRepository(User) private userRepo: Repository<User>,
     private notificationsService: NotificationsService,
   ) {}
+
+  // Autres agents du même rôle déjà en congé (approuvé ou en attente) sur une période donnée.
+  private async findRoleOverlaps(
+    role: Role, dateDebut: string, dateFin: string, excludeUserId: string,
+  ) {
+    return this.congeRepo
+      .createQueryBuilder('conge')
+      .leftJoinAndSelect('conge.demandeur', 'demandeur')
+      .where('demandeur.role = :role', { role })
+      .andWhere('demandeur.id != :excludeUserId', { excludeUserId })
+      .andWhere('conge.statut IN (:...statuts)', {
+        statuts: [StatutConge.EN_ATTENTE, StatutConge.APPROUVE],
+      })
+      .andWhere('conge.dateDebut <= :dateFin AND conge.dateFin >= :dateDebut', { dateDebut, dateFin })
+      .getMany();
+  }
 
   async findAll(user: { userId: string; role: Role }) {
     const isManager = user.role === Role.CHEF_EXPLOITATION || user.role === Role.SUPER_ADMIN;
@@ -69,6 +94,12 @@ export class CongesService {
     });
     await this.congeRepo.save(conge);
 
+    // Alerte non-bloquante : d'autres agents du même rôle sont-ils déjà en congé sur cette période ?
+    const overlaps = await this.findRoleOverlaps(demandeur.role, dto.dateDebut, dto.dateFin, userId);
+    const conflictNote = overlaps.length >= 2
+      ? ` ⚠️ Attention : ${overlaps.length} autres ${ROLE_LABELS_FR[demandeur.role]}s sont déjà en congé sur cette période.`
+      : '';
+
     // Notify all chefs exploitation
     const chefs = await this.userRepo.find({ where: { role: Role.CHEF_EXPLOITATION, actif: true } });
     for (const chef of chefs) {
@@ -76,11 +107,11 @@ export class CongesService {
         destinataire_id: chef.id,
         conge_id: conge.id,
         type: TypeNotification.NOUVELLE_DEMANDE,
-        message: `Nouvelle demande de congé de ${demandeur.prenom} ${demandeur.nom} (${nombreJours}j du ${dto.dateDebut} au ${dto.dateFin})`,
+        message: `Nouvelle demande de congé de ${demandeur.prenom} ${demandeur.nom} (${nombreJours}j du ${dto.dateDebut} au ${dto.dateFin})${conflictNote}`,
       });
     }
 
-    return conge;
+    return { ...conge, overlapCount: overlaps.length };
   }
 
   async decider(congeId: string, managerId: string, dto: {

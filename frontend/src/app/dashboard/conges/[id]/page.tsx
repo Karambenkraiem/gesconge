@@ -8,6 +8,8 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import toast from 'react-hot-toast';
 import StatutBadge from '../../../../components/StatutBadge';
+import OverlapWarning from '../../../../components/OverlapWarning';
+import { findRoleOverlaps } from '../../../../lib/overlap';
 import {
   ArrowLeft, MessageSquare, CheckCircle, XCircle, Clock,
   Printer, X, Paperclip, FileText, ExternalLink, AlertTriangle,
@@ -23,6 +25,7 @@ export default function CongeDetailPage() {
   const { user } = useAuth();
   const router = useRouter();
   const [conge, setConge] = useState<Conge | null>(null);
+  const [allConges, setAllConges] = useState<Conge[]>([]);
   const [demandeurUser, setDemandeurUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
@@ -41,6 +44,7 @@ export default function CongeDetailPage() {
       const found = r.data.find((c: Conge) => c.id === id);
       if (found) {
         setConge(found);
+        setAllConges(r.data);
         if (isManager) {
           usersAPI.getOne(found.demandeur_id).then(ur => setDemandeurUser(ur.data)).catch(() => {});
         }
@@ -48,6 +52,10 @@ export default function CongeDetailPage() {
       setLoading(false);
     }).catch(() => setLoading(false));
   }, [id]);
+
+  const overlaps = conge
+    ? findRoleOverlaps(allConges, conge.demandeur.role, conge.dateDebut, conge.dateFin, conge.demandeur_id, conge.id)
+    : [];
 
   const handleDecision = async (statut: 'approuve' | 'refuse') => {
     setDecisionType(statut);
@@ -288,16 +296,19 @@ export default function CongeDetailPage() {
 
         {/* Actions manager */}
         {isManager && conge.statut === 'en_attente' && (
-          <div className="grid grid-cols-2 gap-3">
-            <button onClick={() => handleDecision('refuse')} disabled={actionLoading}
-              className="flex items-center justify-center gap-2 py-3 bg-red-50 border border-red-200 text-red-700 font-bold rounded-xl hover:bg-red-100 active:scale-95 transition-all disabled:opacity-50">
-              <XCircle size={18} /> Refuser
-            </button>
-            <button onClick={() => handleDecision('approuve')} disabled={actionLoading}
-              className="flex items-center justify-center gap-2 py-3 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 active:scale-95 transition-all disabled:opacity-50">
-              <CheckCircle size={18} /> Approuver
-            </button>
-          </div>
+          <>
+            <OverlapWarning overlaps={overlaps} />
+            <div className="grid grid-cols-2 gap-3">
+              <button onClick={() => handleDecision('refuse')} disabled={actionLoading}
+                className="flex items-center justify-center gap-2 py-3 bg-red-50 border border-red-200 text-red-700 font-bold rounded-xl hover:bg-red-100 active:scale-95 transition-all disabled:opacity-50">
+                <XCircle size={18} /> Refuser
+              </button>
+              <button onClick={() => handleDecision('approuve')} disabled={actionLoading}
+                className="flex items-center justify-center gap-2 py-3 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 active:scale-95 transition-all disabled:opacity-50">
+                <CheckCircle size={18} /> Approuver
+              </button>
+            </div>
+          </>
         )}
 
         {isMine && conge.statut === 'en_attente' && (

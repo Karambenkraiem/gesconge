@@ -107,6 +107,21 @@ export default function DashboardPage() {
         <ChevronRight size={18} className="text-slate-300" />
       </Link>
 
+      {/* Calendrier des congés par rôle — chef d'exploitation / super admin */}
+      {isManager && (
+        <Link href="/dashboard/calendrier"
+          className="block bg-white border border-slate-100 rounded-2xl p-4 flex items-center gap-3 hover:bg-slate-50 active:scale-98 transition-all">
+          <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0">
+            <Calendar size={20} className="text-white" />
+          </div>
+          <div className="flex-1">
+            <p className="font-bold text-slate-800 text-sm">Calendrier des congés par rôle</p>
+            <p className="text-xs text-slate-500">Planning Opérateurs, Chefs de Bloc, Chefs de Quart</p>
+          </div>
+          <ChevronRight size={18} className="text-slate-300" />
+        </Link>
+      )}
+
       {/* Recent conges */}
       <div>
         <div className="flex items-center justify-between mb-3">

@@ -1,9 +1,11 @@
 'use client';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { congesAPI } from '../../../lib/api';
 import { useAuth } from '../../../contexts/AuthContext';
-import { TypeConge, TYPE_LABELS } from '../../../types';
+import { Conge, TypeConge, TYPE_LABELS } from '../../../types';
+import { findRoleOverlaps } from '../../../lib/overlap';
+import OverlapWarning from '../../../components/OverlapWarning';
 import toast from 'react-hot-toast';
 import { ArrowLeft, Send, Info, Paperclip, X } from 'lucide-react';
 import Link from 'next/link';
@@ -22,6 +24,16 @@ export default function NouvelleDemandePage() {
   const [certificat, setCertificat] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [nombreJours, setNombreJours] = useState(0);
+  const [allConges, setAllConges] = useState<Conge[]>([]);
+
+  useEffect(() => {
+    congesAPI.getCalendrier().then(r => setAllConges(r.data)).catch(() => {});
+  }, []);
+
+  const overlaps = useMemo(() => {
+    if (!user || !form.dateDebut || !form.dateFin || nombreJours <= 0) return [];
+    return findRoleOverlaps(allConges, user.role, form.dateDebut, form.dateFin, user.id);
+  }, [allConges, user, form.dateDebut, form.dateFin, nombreJours]);
 
   const calcJours = (debut: string, fin: string) => {
     if (debut && fin) {
@@ -164,6 +176,8 @@ export default function NouvelleDemandePage() {
               )}
             </div>
           )}
+
+          <OverlapWarning overlaps={overlaps} />
 
           {/* Adresse pendant le congé */}
           <div>
